@@ -1,0 +1,6 @@
+{
+  "name": "AI-агенты для бизнеса — Успешный",
+  "description": "Интерактивная витрина, симулятор, тест AI Readiness Assessment и калькулятор окупаемости внедрения AI-агентов в бизнес-процессы.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

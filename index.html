@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('uspeshnyy-theme');
+          if (!t || t === 'auto') {
+            t = 'light';
+            localStorage.setItem('uspeshnyy-theme', 'light');
+          }
+          document.documentElement.dataset.theme = t;
+          if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    <title>AI-агенты для бизнеса — Успешный</title>
+    <meta name="description" content="Интерактивная витрина, симулятор, тест AI Readiness Assessment и калькулятор окупаемости внедрения AI-агентов в бизнес-процессы." />
+    <meta property="og:title" content="AI-агенты для бизнеса — Успешный" />
+    <meta property="og:description" content="Интерактивная витрина, симулятор, тест AI Readiness Assessment и калькулятор окупаемости внедрения AI-агентов в бизнес-процессы." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/common/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#eef4fa] text-[#3a4d63] antialiased selection:bg-[#136f97]/20 selection:text-[#0d1f36]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
