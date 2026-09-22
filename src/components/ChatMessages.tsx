@@ -77,6 +77,8 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef<number>(messages.length);
   const initialFirstMsgIdRef = useRef<string>(messages[0]?.id || '');
+  // первый показ не должен утаскивать страницу к симулятору
+  const didMountRef = useRef<boolean>(false);
 
   // Handle sequential autoplay entrance and dynamic message additions
   useEffect(() => {
@@ -147,11 +149,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     }
   }, [messages.length]);
 
-  // Smooth scroll to bottom on new messages or typing state change
+  // Прокрутка к последнему сообщению — только после первого рендера и только
+  // внутри контейнера чата: scrollIntoView тянул за собой всю страницу.
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
     }
+    const box = scrollContainerRef.current;
+    const end = messagesEndRef.current;
+    if (!box || !end) return;
+    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
   }, [visibleCount, isProcessing, isTypingInternal]);
 
   const handleCopy = (id: string, text: string) => {

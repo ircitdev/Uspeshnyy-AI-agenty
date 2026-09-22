@@ -33,10 +33,120 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      /* ===== Прелоадер: как на uspeshnyy.ru — гексагон с орбитой и занавес =====
+         Живёт в index.html, а не в React: должен показаться до загрузки бандла. */
+      #loader {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #eef4fa;
+        display: flex; align-items: center; justify-content: center;
+        transition: transform .9s cubic-bezier(.77,0,.18,1), visibility .9s;
+      }
+      html[data-theme="dark"] #loader { background: #030a14; }
+      #loader::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(46% 46% at 50% 50%, rgba(51,164,212,.12), transparent 70%);
+        animation: loader-breath 2.6s ease-in-out infinite;
+      }
+      @keyframes loader-breath { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:1; transform:scale(1.12); } }
+      #loader.done { transform: translateY(-100%); visibility: hidden; }
+      /* visibility:hidden не гасит анимации — снимаем их явно */
+      #loader.done, #loader.done *, #loader.done::before, #loader.done::after,
+      #loader.done *::before, #loader.done *::after { animation: none !important; }
+      #loader.done .loader-inner { opacity:0; transform:translateY(-44px); filter:blur(6px); }
+      .loader-inner {
+        position: relative; display: flex; flex-direction: column;
+        align-items: center; gap: 22px;
+        transition: opacity .5s ease, transform .5s ease, filter .5s ease;
+      }
+      .loader-hex { position: relative; width: 92px; height: 92px; }
+      .loader-hex::before {
+        content: ''; position: absolute; inset: -26px; border-radius: 50%;
+        background: conic-gradient(from 0deg, transparent 62%, rgba(51,164,212,.75));
+        -webkit-mask: radial-gradient(closest-side, transparent 82%, #000 84%, #000 96%, transparent 98%);
+        mask: radial-gradient(closest-side, transparent 82%, #000 84%, #000 96%, transparent 98%);
+        animation: loader-orbit 1.7s linear infinite;
+      }
+      @keyframes loader-orbit { to { transform: rotate(360deg); } }
+      .loader-hex img {
+        width: 100%; height: auto; display: block;
+        filter: drop-shadow(0 0 18px rgba(51,164,212,.75));
+        animation: loader-logo-in 1.1s cubic-bezier(.22,1,.36,1) .1s both,
+                   loader-glow 2.4s ease-in-out 1.3s infinite;
+      }
+      @keyframes loader-logo-in { from { opacity:0; transform:scale(.82) translateY(10px); } to { opacity:1; transform:none; } }
+      @keyframes loader-glow { 0%,100% { filter:drop-shadow(0 0 18px rgba(51,164,212,.75)); } 50% { filter:drop-shadow(0 0 30px rgba(51,164,212,.95)); } }
+      .loader-name {
+        color: #0d1f36; font-size: 1.45rem; font-weight: 700;
+        opacity: 0; letter-spacing: .34em; filter: blur(8px);
+        animation: loader-name-in 1.1s cubic-bezier(.22,1,.36,1) .5s forwards;
+      }
+      html[data-theme="dark"] .loader-name { color: #eaf3ff; }
+      .loader-name b { color: #136f97; font-weight: 800; }
+      html[data-theme="dark"] .loader-name b { color: #33a4d4; }
+      @keyframes loader-name-in { to { opacity:1; letter-spacing:.02em; filter:blur(0); } }
+      .loader-tag {
+        color: #5b7188; font-size: .78rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .32em;
+        opacity: 0; transform: translateY(10px);
+        animation: loader-tag-in .9s cubic-bezier(.22,1,.36,1) .95s forwards;
+      }
+      html[data-theme="dark"] .loader-tag { color: #7b8ea6; }
+      @keyframes loader-tag-in { to { opacity:.85; transform:none; } }
+      .loader-bar {
+        width: 220px; height: 2px; border-radius: 2px; overflow: hidden;
+        background: rgba(13,31,54,.1);
+      }
+      html[data-theme="dark"] .loader-bar { background: rgba(255,255,255,.08); }
+      .loader-bar i {
+        display: block; width: 40%; height: 100%; border-radius: 2px;
+        background: linear-gradient(90deg, transparent, #33a4d4, transparent);
+        animation: loader-bar-run 1.25s ease-in-out infinite;
+      }
+      @keyframes loader-bar-run { 0% { transform:translateX(-120%); } 100% { transform:translateX(320%); } }
+      @media (prefers-reduced-motion: reduce) {
+        #loader *, #loader::before { animation: none !important; }
+        .loader-name, .loader-tag { opacity: 1; filter: none; transform: none; letter-spacing: .02em; }
+      }
+    </style>
   </head>
   <body class="bg-[#eef4fa] text-[#3a4d63] antialiased selection:bg-[#136f97]/20 selection:text-[#0d1f36]">
+    <div id="loader" aria-hidden="true">
+      <div class="loader-inner">
+        <div class="loader-hex">
+          <img src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/common/logo.svg" alt="" width="92" height="103" />
+        </div>
+        <div class="loader-name">Александр <b>Успешный</b></div>
+        <div class="loader-tag">AI-агенты для бизнеса</div>
+        <div class="loader-bar"><i></i></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Прячем прелоадер, когда приложение отрисовалось. Минимум 900 мс —
+      // иначе на быстрой сети он мигает и выглядит сбоем.
+      (function () {
+        var t0 = performance.now();
+        function hide() {
+          var el = document.getElementById('loader');
+          if (!el) return;
+          var wait = Math.max(0, 900 - (performance.now() - t0));
+          setTimeout(function () { el.classList.add('done'); }, wait);
+        }
+        // ждём появления содержимого в #root, с запасным таймером
+        var root = document.getElementById('root');
+        if (root && 'MutationObserver' in window) {
+          var mo = new MutationObserver(function () {
+            if (root.childNodes.length) { mo.disconnect(); hide(); }
+          });
+          mo.observe(root, { childList: true });
+        }
+        window.addEventListener('load', hide);
+        setTimeout(hide, 6000);   // страховка, если что-то пошло не так
+      })();
+    </script>
+
   </body>
 </html>
 
