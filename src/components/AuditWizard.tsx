@@ -45,6 +45,9 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
   const [answers, setAnswers] = useState<Answers>({});
   const [siteInput, setSiteInput] = useState('');
   const [peek, setPeek] = useState<{ state: 'idle' | 'loading' | 'ok' | 'block'; text: string }>({ state: 'idle', text: '' });
+  // Контакт обязателен: если человек не дойдёт до бота, связаться с ним
+  // будет нечем — отчёт останется лежать готовым и никому не нужным.
+  const [contact, setContact] = useState('');
   const [agree, setAgree] = useState(false);
   // Согласие на рассылку — отдельное и не предотмеченное:
   // объединять его с согласием на обработку данных нельзя.
@@ -63,6 +66,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
     setAnswers({});
     setSiteInput('');
     setPeek({ state: 'idle', text: '' });
+    setContact('');
     setAgree(false);
     setMarketing(false);
     setError('');
@@ -136,7 +140,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
           // niche эндпоинт требует обязательно; ниша определяется по сайту
           // на стороне бота, поэтому ставим значение по умолчанию —
           // так же, как это делает форма на главной.
-          answers: { niche: 'Другое', ...answers, website: siteInput.trim() },
+          answers: { niche: 'Другое', ...answers, website: siteInput.trim(), contact: contact.trim() },
           variant: 'agenty3',
           marketing,
           company: honeypot.current?.value || '',
@@ -352,6 +356,25 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                     {answers.about ? ' · ' + answers.about : ''}
                   </p>
                 )}
+                <label className="mb-4 block">
+                  <span className="mb-1.5 block text-sm font-medium text-[#0d1f36] dark:text-[#eaf3ff]">
+                    Telegram или телефон
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    inputMode="text"
+                    autoComplete="tel"
+                    value={contact}
+                    onChange={e => setContact(e.target.value)}
+                    placeholder="@username или +7 (999) 000-00-00"
+                    className="w-full rounded-2xl border border-[#147aa6]/25 bg-[#f6f9fc] px-4 py-3 text-sm text-[#0d1f36] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#136f97] dark:border-white/10 dark:bg-[#09182a] dark:text-[#eaf3ff]"
+                  />
+                  <span className="mt-1.5 block text-xs text-[#5b7188] dark:text-[#7b8ea6]">
+                    Пришлём разбор, если не дойдёте до бота.
+                  </span>
+                </label>
+
                 {/* Ловушка для ботов: человек это поле не видит */}
                 <input
                   ref={honeypot}
@@ -408,7 +431,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                   <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} className={backBtn}>
                     Назад
                   </button>
-                  <button type="button" disabled={!agree || sending} onClick={submit} className={primaryBtn}>
+                  <button type="button" disabled={!agree || sending || contact.trim().length < 5} onClick={submit} className={primaryBtn}>
                     {sending ? 'Отправляю…' : 'Получить отчёт'}
                     {!sending && <ArrowRight className="h-4 w-4" />}
                   </button>
