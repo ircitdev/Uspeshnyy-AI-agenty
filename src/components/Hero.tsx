@@ -3,6 +3,7 @@ import { ArrowRight, Play, Zap, ShieldCheck, Clock, Sparkles } from 'lucide-reac
 import { motion } from 'motion/react';
 import { GlassmorphismCta } from './GlassmorphismCta';
 import { RevealText } from './RevealText';
+import { CountUp } from './CountUp';
 import { TextRevealMask } from './TextRevealMask';
 import { ParticleDrift } from './ParticleDrift';
 // three весит ~150 КБ — тянем его только когда первый экран реально виден.
@@ -100,13 +101,13 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                 className="block text-[2.2rem] sm:text-5xl lg:text-[3.3rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
               />
               <span className="block mt-2">
-                <RevealText 
-                  text="от 60 000 ₽" 
-                  as="span" 
-                  byChar
-                  delay={1.75}
-                  stagger={0.045}
-                  className="block text-[1.55rem] sm:text-4xl lg:text-[2.6rem] leading-tight text-[#136f97] dark:text-[#33a4d4] font-bold" 
+                <CountUp
+                  to={60000}
+                  prefix="от"
+                  suffix="₽"
+                  delay={2.0}
+                  duration={1.6}
+                  className="block text-[1.55rem] sm:text-4xl lg:text-[2.6rem] leading-tight text-[#136f97] dark:text-[#33a4d4] font-bold"
                 />
               </span>
             </h1>
