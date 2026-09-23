@@ -36,6 +36,10 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       return;
     }
 
+    // Подписчики на нажатие по модели: сам жест добавляется ниже,
+    // когда объявлены кости и состояние анимации.
+    const surfaceClickTarget: Array<() => void> = [];
+
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // На телефоне держим 1.5x: разница на глаз незаметна, а нагрузка
@@ -149,6 +153,14 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
 
     // iOS Safari: нативные touch-события, слушатель не passive —
     // иначе нельзя отменить прокрутку при горизонтальном жесте.
+    // Нажатие на модель — благодарность в ответ. Держим три секунды,
+    // потом робот возвращается к обычной очереди жестов.
+    const showHeart = () => {
+      heartUntil = performance.now() + 3000;
+      gestureTarget = 1;
+    };
+    surfaceClickTarget.push(showHeart);
+
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       beginDrag(e.touches[0].clientX, e.touches[0].clientY);
@@ -160,6 +172,9 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     };
 
     const surface = renderer.domElement;
+    const onSurfaceClick = () => surfaceClickTarget.forEach(fn => fn());
+    surface.style.cursor = 'pointer';
+    surface.addEventListener('click', onSurfaceClick, { passive: true });
     surface.addEventListener('touchstart', onTouchStart, { passive: true });
     surface.addEventListener('touchmove', onTouchMove, { passive: false });
     surface.addEventListener('touchend', endDrag, { passive: true });
@@ -248,6 +263,30 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     const SPIN_MS = 2600;
     let spinStart = 0;
 
+    // Сердце двумя руками: кисти сходятся перед грудью, пальцы согнуты
+    // навстречу друг другу. Кости идут по локальной оси Y, поэтому подъём
+    // рук — поворот по Z, а сведение к центру — по X у предплечий.
+    const POSE_HEART: Pose = {
+      shoulder: [0, 0, -0.2],
+      arm: [0, 0, -0.75],
+      foreArm: [-1.5, 0, -0.35],
+      hand: [0, 0.5, -0.6],
+      index1: [0.9, 0, 0],
+      middle1: [1.0, 0, 0],
+      ring1: [1.1, 0, 0],
+      pinky1: [1.2, 0, 0],
+
+      lShoulder: [0, 0, 0.2],
+      lArm: [0, 0, 0.75],
+      lForeArm: [-1.5, 0, 0.35],
+      lHand: [0, -0.5, 0.6],
+      lIndex1: [0.9, 0, 0],
+      lMiddle1: [1.0, 0, 0],
+      lRing1: [1.1, 0, 0],
+      lPinky1: [1.2, 0, 0],
+      lThumb1: [0, 0, -0.2],
+    };
+
     // Два жеста чередуются: указание правой рукой, затем палец вверх левой.
     // 0 — покой, 1 — поза показана целиком.
     const SEQUENCE: Pose[] = [POSE_POINT, POSE_THUMB];
@@ -255,6 +294,8 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     let gesture = 0;
     let gestureTarget = 0;
     let nextGestureAt = performance.now() + 2600;
+    // Сердце показывается по нажатию и перебивает обычную очередь жестов.
+    let heartUntil = 0;
 
     const loader = new GLTFLoader();
     // Геометрия сжата EXT_meshopt_compression — подключаем декодер.
@@ -354,7 +395,10 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       // Жест повторяется циклом: поднял — подержал — опустил — пауза.
       if (!reduced) {
         const now2 = performance.now();
-        if (now2 > nextGestureAt) {
+        if (now2 < heartUntil) {
+          // сердце держим целиком, не переключаясь на следующий жест
+          gestureTarget = 1;
+        } else if (now2 > nextGestureAt) {
           if (gestureTarget > 0.5) {
             // опускаем руку, держим паузу и переходим к следующему жесту
             gestureTarget = 0;
@@ -376,7 +420,9 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
           if (b && r0) b.rotation.copy(r0);
         });
 
-        const pose = SEQUENCE[poseIndex];
+        // Пока держится сердце — показываем его, очередь ждёт.
+        const heartActive = now2 < heartUntil;
+        const pose = heartActive ? POSE_HEART : SEQUENCE[poseIndex];
         (Object.keys(pose) as BoneKey[]).forEach(k => {
           const b = bones[k];
           const r0 = rest[k];
@@ -436,6 +482,7 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('resize', onResize);
       host.removeEventListener('pointerleave', onPointerLeave);
+      surface.removeEventListener('click', onSurfaceClick);
       surface.removeEventListener('touchstart', onTouchStart);
       surface.removeEventListener('touchmove', onTouchMove);
       surface.removeEventListener('touchend', endDrag);
