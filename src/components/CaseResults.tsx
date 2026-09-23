@@ -57,10 +57,13 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   }, [value]);
 
   const [displayValue, setDisplayValue] = useState(0);
+  // Один раз досчитав, значение больше не сбрасываем: при повторном входе
+  // в секцию клиент видел «0%» вместо результата кейса.
+  const settled = useRef(false);
 
   useEffect(() => {
     if (!trigger) {
-      setDisplayValue(0);
+      if (!settled.current) setDisplayValue(0);
       return;
     }
     if (parsed.isRaw) return;
@@ -79,6 +82,7 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
         frameId = requestAnimationFrame(step);
       } else {
         setDisplayValue(parsed.target);
+        settled.current = true;
       }
     };
 

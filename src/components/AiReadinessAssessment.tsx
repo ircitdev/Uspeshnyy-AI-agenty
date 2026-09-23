@@ -228,6 +228,7 @@ const QUESTIONS: Question[] = [
 
 export const AiReadinessAssessment: React.FC<AiReadinessAssessmentProps> = ({ onOpenConsultation }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [pdfError, setPdfError] = useState<string>('');
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, QuestionOption>>({});
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
@@ -386,7 +387,10 @@ export const AiReadinessAssessment: React.FC<AiReadinessAssessmentProps> = ({ on
         setPdfDownloaded(false);
       }, 4500);
     } catch (err) {
-      console.error('Failed to generate PDF:', err);
+      console.error('PDF: не удалось собрать отчёт', err);
+      // Без видимого сообщения человек жмёт кнопку повторно и не понимает,
+      // почему файла нет.
+      setPdfError('Не удалось собрать PDF. Попробуйте ещё раз или напишите нам в Telegram.');
     } finally {
       setIsGeneratingPdf(false);
     }

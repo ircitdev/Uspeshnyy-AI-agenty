@@ -1,3 +1,44 @@
+/* ── Токены темы ─────────────────────────────────────────────────────
+   Цвета в компонентах заданы литералами (#0d1f36 и т.д.) — это наследие,
+   переписывать три десятка файлов рискованно. Поэтому тот же набор
+   объявлен переменными: новый код берёт их, а правила ниже страхуют
+   старый — забытая dark:-пара больше не оставит текст невидимым. */
+:root {
+  --ink: #0d1f36;          /* основной текст */
+  --ink-soft: #3a4d63;     /* вторичный текст */
+  --ink-muted: #5b7188;    /* подписи */
+  --brand: #136f97;        /* акцент */
+  --brand-soft: #147aa6;
+  --surface: #ffffff;
+  --surface-alt: #f6f9fc;
+}
+
+html.dark {
+  --ink: #eaf3ff;
+  --ink-soft: #b6c6da;
+  --ink-muted: #7b8ea6;
+  --brand: #38bdf8;
+  --brand-soft: #33a4d4;
+  --surface: #0e2236;
+  --surface-alt: #09182a;
+}
+
+/* Страховка контраста: тёмный текст на тёмном фоне давал 1.11 при норме
+   4.5 — кнопки читались как пустые прямоугольники. Подменяем только там,
+   где сам элемент не задал светлый цвет для тёмной темы. */
+html.dark .text-\[\#0d1f36\]:not([class*="dark:text-"]) {
+  color: var(--ink);
+}
+html.dark .text-\[\#3a4d63\]:not([class*="dark:text-"]) {
+  color: var(--ink-soft);
+}
+html.dark .text-\[\#5b7188\]:not([class*="dark:text-"]) {
+  color: var(--ink-muted);
+}
+html.dark .text-\[\#136f97\]:not([class*="dark:text-"]) {
+  color: var(--brand);
+}
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));

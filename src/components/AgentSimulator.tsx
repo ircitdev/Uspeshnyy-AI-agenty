@@ -50,6 +50,9 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'agent'; text: string; time: string; tone?: AgentTone }>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  // Демо-агент недоступен: показываем это явно, иначе человек
+  // решит, что так агент и работает.
+  const [isDegraded, setIsDegraded] = useState(false);
   const [activeTone, setActiveTone] = useState<AgentTone>('professional');
   const [ratedMessages, setRatedMessages] = useState<Record<string, 'up' | 'down'>>({});
   const [feedbackToastId, setFeedbackToastId] = useState<string | null>(null);
@@ -360,6 +363,7 @@ const STREET_DIALOGUES: Record<string, Array<{ role: 'user' | 'agent'; text: str
 
     // Живой ответ модели идёт через бота: ключ Gemini нельзя держать в браузере.
     let reply = '';
+    let degraded = false;
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 12000);
@@ -378,9 +382,14 @@ const STREET_DIALOGUES: Record<string, Array<{ role: 'user' | 'agent'; text: str
       const data = await res.json();
       if (data && typeof data.reply === 'string') reply = data.reply.trim();
     } catch {
-      // сеть, таймаут или лимит — молча уходим на заготовку
+      // сеть, таймаут или лимит — уходим на заготовку, но скажем об этом
+      degraded = true;
     }
-    if (!reply) reply = fallbackReply();
+    if (!reply) {
+      degraded = true;
+      reply = fallbackReply();
+    }
+    setIsDegraded(degraded);
 
     setMessages(prev => [
       ...prev,
@@ -520,6 +529,19 @@ const STREET_DIALOGUES: Record<string, Array<{ role: 'user' | 'agent'; text: str
             {/* Left Column: Live Chat Interface (7 cols) */}
             <div className="lg:col-span-7 p-5 sm:p-6 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#147aa6]/15 dark:border-white/10 min-h-[420px]">
               
+              {isDegraded && (
+                <div
+                  role="status"
+                  className="mb-3 flex items-start gap-2 rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/50 dark:bg-amber-950/40 dark:text-amber-200"
+                >
+                  <span aria-hidden="true">⚠</span>
+                  <span>
+                    Демо-агент сейчас недоступен — показываем ответ из записи.
+                    В работе агент отвечает на живые вопросы.
+                  </span>
+                </div>
+              )}
+
               {/* Dialogue Header */}
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 pb-3 mb-3 border-b border-gray-100 dark:border-gray-800 text-xs">
                 <span className="text-[#5b7188] dark:text-[#7b8ea6] flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 min-w-0">
