@@ -327,3 +327,25 @@ html[data-theme="dark"] .text-teal-400    { color: #5eead4; }
   background: #22c55e;
   color: #052e16;
 }
+
+/* Текст политики: заголовки и абзацы приходят готовой разметкой
+   с главной страницы, поэтому стилизуем их здесь, а не классами. */
+.policy-text h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: .35rem;
+}
+.policy-text h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 1.1rem 0 .3rem;
+}
+.policy-text p { margin-bottom: .6rem; }
+.policy-text .pm-muted {
+  font-size: .8rem;
+  color: var(--ink-muted);
+  margin-bottom: 1rem;
+}
+.policy-text a { color: var(--brand); text-decoration: underline; }

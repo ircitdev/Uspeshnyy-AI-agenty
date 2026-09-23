@@ -365,9 +365,15 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                   />
                   <span>
                     Согласен(-на) на{' '}
-                    <a href="https://uspeshnyy.ru/privacy.html" target="_blank" rel="noopener noreferrer" className="underline">
+                    {/* Открываем модалку, а не уводим со страницы: человек
+                        посреди заполнения формы не должен её терять. */}
+                    <button
+                      type="button"
+                      onClick={() => document.dispatchEvent(new Event('open-privacy'))}
+                      className="underline"
+                    >
                       обработку персональных данных
-                    </a>
+                    </button>
                   </span>
                 </label>
 

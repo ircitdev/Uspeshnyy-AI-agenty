@@ -30,6 +30,13 @@ export const Footer: React.FC = () => {
 
         {/* Links */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => document.dispatchEvent(new Event('open-privacy'))}
+            className="text-[0.78rem] text-[#5b7188] underline-offset-2 transition-colors hover:text-[#136f97] hover:underline dark:text-[#7b8ea6] dark:hover:text-[#38bdf8]"
+          >
+            Политика конфиденциальности
+          </button>
           <motion.a 
             href="https://blog.uspeshnyy.ru" 
             target="_blank" 

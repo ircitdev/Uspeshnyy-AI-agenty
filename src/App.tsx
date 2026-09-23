@@ -23,6 +23,7 @@ import { FinalCta } from './components/FinalCta';
 import { ContactModal } from './components/ContactModal';
 import { StickyCta } from './components/StickyCta';
 import { AuditWizard } from './components/AuditWizard';
+import { CookieNotice } from './components/CookieNotice';
 import { useScrollAnimations, useThemedImages } from './hooks/useScrollAnimations';
 import { Footer } from './components/Footer';
 import { ScrollReveal } from './components/ScrollReveal';
@@ -185,6 +186,8 @@ export default function App() {
 
       {/* Footer */}
       <AuditWizard isOpen={isAuditOpen} onClose={() => setIsAuditOpen(false)} />
+
+      <CookieNotice />
 
       <StickyCta onOpenConsultation={handleOpenConsultation} />
 
