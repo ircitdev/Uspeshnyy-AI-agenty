@@ -128,7 +128,10 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          answers: { ...answers, website: siteInput.trim() },
+          // niche эндпоинт требует обязательно; ниша определяется по сайту
+          // на стороне бота, поэтому ставим значение по умолчанию —
+          // так же, как это делает форма на главной.
+          answers: { niche: 'Другое', ...answers, website: siteInput.trim() },
           variant: 'agenty3',
           company: honeypot.current?.value || '',
         }),
