@@ -72,15 +72,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 items-center">
           
           {/* Left Column: Value Proposition */}
-          <div className="order-2 lg:order-1 lg:col-span-6 xl:col-span-6 flex flex-col relative z-20 -mt-10 sm:-mt-14 lg:mt-0">
-            {/* Kicker Tag */}
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 self-start px-2.5 sm:px-3.5 py-1.5 rounded-full text-[0.6rem] sm:text-[0.72rem] font-bold tracking-normal sm:tracking-wider uppercase whitespace-nowrap text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mb-5">
-              <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
-              <span>Автоматизация · AI · Реальные результаты</span>
-            </div>
-
+          <div className="order-2 lg:order-1 lg:col-span-6 xl:col-span-6 flex flex-col relative z-10 lg:z-20 items-center text-center lg:items-start lg:text-left -mt-12 sm:-mt-16 lg:mt-0">
             {/* Main Title with RevealText animation */}
-            <h1 className="font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] leading-[0.92] tracking-tight mb-4">
+            <h1 className="font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] leading-[0.92] tracking-tight mb-4 -mt-[10px] lg:mt-0">
               {/* «AI-агенты» — главное слово: отдельной строкой и крупнее,
                   «для бизнеса» ступенью ниже. Так заголовок читается как
                   заявление, а не как одна длинная фраза. */}
@@ -103,9 +97,15 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                 />
               </span>
             </h1>
+            {/* Kicker Tag */}
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 self-center lg:self-start px-2.5 sm:px-3.5 py-1.5 rounded-full text-[0.6rem] sm:text-[0.72rem] font-bold tracking-normal sm:tracking-wider uppercase whitespace-nowrap text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mt-5 mb-6">
+              <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
+              <span>Автоматизация · AI · Реальные результаты</span>
+            </div>
+
 
             {/* Lead description with TextRevealMask */}
-            <div className="mb-8 max-w-[48ch]">
+            <div className="mb-8 max-w-[48ch] mx-auto lg:mx-0">
               <TextRevealMask
                 text="Отдайте AI повторяющиеся задачи: заявки, звонки, переписку и отчеты. Агенты работают в ваших системах, принимают решения по вашим регламентам и доводят клиента до результата."
                 className="text-base sm:text-lg text-[#3a4d63] dark:text-[#b6c6da] leading-relaxed"
@@ -118,7 +118,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               initial={{ opacity: 0, y: 22, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.6, delay: 1.35, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mb-10"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3.5 mb-10 w-full sm:w-auto"
             >
               <motion.div
                 whileHover={{ scale: 1.02, y: -2 }}
@@ -199,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
 
           {/* Right Column: Dynamic Parallax Robot & System Composition */}
           <div 
-            className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 relative aspect-square sm:aspect-[4/3] lg:aspect-square flex items-center justify-center select-none -mt-4 sm:-mt-6 lg:mt-0"
+            className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 relative z-20 lg:z-10 aspect-square sm:aspect-[4/3] lg:aspect-square flex items-center justify-center select-none -mt-4 sm:-mt-6 lg:mt-0"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
@@ -287,16 +287,20 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
 
             {/* Layer 3: Central Robot (Reveals first in sequence) */}
             <div 
-              className="relative w-[70%] lg:w-[91%] max-w-[380px] lg:max-w-[494px] z-20"
+              className="relative w-[105%] lg:w-[91%] max-w-[560px] lg:max-w-[494px] z-30 lg:z-20"
               style={{
                 transform: `translate3d(${mousePos.x * 10}px, ${mousePos.y * 8}px, 0)`,
-                transition: 'transform 0.3s ease-out'
+                transition: 'transform 0.3s ease-out',
+                // Горизонтальный жест забирает модель, вертикальный —
+                // страница. Без этого предок отдавал весь жест прокрутке.
+                touchAction: 'pan-y',
               }}
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.76, y: 50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.85, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                style={{ touchAction: 'pan-y' }}
               >
                 {/* Continuous Smooth Levitation */}
                 <motion.div

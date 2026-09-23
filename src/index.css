@@ -4,23 +4,23 @@
    объявлен переменными: новый код берёт их, а правила ниже страхуют
    старый — забытая dark:-пара больше не оставит текст невидимым. */
 :root {
-  --ink: #0d1f36;          /* основной текст */
-  --ink-soft: #3a4d63;     /* вторичный текст */
-  --ink-muted: #5b7188;    /* подписи */
-  --brand: #136f97;        /* акцент */
-  --brand-soft: #147aa6;
-  --surface: #ffffff;
-  --surface-alt: #f6f9fc;
+  --ink: #0B1B2B;          /* основной текст (Primary on Light) */
+  --ink-soft: #25303C;     /* вторичный текст (Graphite) */
+  --ink-muted: #7F8B96;    /* подписи (Muted) */
+  --brand: #10C9F4;        /* акцент (System Cyan) */
+  --brand-soft: #27B3E4;   /* Electric Blue */
+  --surface: #FBFBFC;      /* Pure Light Surface */
+  --surface-alt: #F6FAFC;  /* Light Background */
 }
 
 html.dark {
-  --ink: #eaf3ff;
-  --ink-soft: #b6c6da;
-  --ink-muted: #7b8ea6;
-  --brand: #38bdf8;
-  --brand-soft: #33a4d4;
-  --surface: #0e2236;
-  --surface-alt: #09182a;
+  --ink: #F7FAFC;          /* Primary on Dark */
+  --ink-soft: #E0E7EC;     /* Cool Gray 100 */
+  --ink-muted: #7F868E;    /* Cool Gray 500 */
+  --brand: #10C9F4;        /* System Cyan */
+  --brand-soft: #55CFEB;   /* Light Cyan */
+  --surface: #031B2C;      /* Navy Surface */
+  --surface-alt: #000D16;  /* Deep Navy */
 }
 
 /* Страховка контраста: тёмный текст на тёмном фоне давал 1.11 при норме
@@ -39,21 +39,34 @@ html.dark .text-\[\#136f97\]:not([class*="dark:text-"]) {
   color: var(--brand);
 }
 
+
+/* ── Фирменный акцент поверх наследия ────────────────────────────────
+   Старые литералы (#136f97, #33a4d4, #38bdf8) — прежний синий. Бренд
+   требует одного акцента (System Cyan), поэтому подменяем их точечно,
+   не трогая компоненты. */
+.text-\[\#136f97\], .text-\[\#147aa6\] { color: #10C9F4; }
+.bg-\[\#136f97\], .bg-\[\#147aa6\] { background-color: #10C9F4; }
+.border-\[\#136f97\], .border-\[\#147aa6\] { border-color: #10C9F4; }
+html.dark .text-\[\#33a4d4\], html.dark .text-\[\#38bdf8\] { color: #10C9F4; }
+html.dark .bg-\[\#33a4d4\], html.dark .bg-\[\#38bdf8\] { background-color: #10C9F4; }
+html.dark .border-\[\#33a4d4\], html.dark .border-\[\#38bdf8\] { border-color: #10C9F4; }
+
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 @layer base {
   :root {
-    --bg: #eef4fa;
-    --card: #ffffff;
-    --panel: #f6f9fc;
-    --ink: #0d1f36;
-    --text: #3a4d63;
-    --muted: #5b7188;
-    --accent: #136f97;
-    --accent-br: #157ba4;
-    --line: rgba(20, 122, 166, 0.16);
+    --bg: #F6FAFC;
+    --card: #FBFBFC;
+    --panel: #F6FAFC;
+    --ink: #0B1B2B;
+    --text: #25303C;
+    --muted: #7F8B96;
+    --accent: #10C9F4;
+    --accent-br: #27B3E4;
+    /* Волосяная линия 1px — в стандарте основной способ разделения. */
+    --line: rgba(16, 201, 244, 0.22);
     --ok: #127a44;
     --warn: #8a6100;
     --fail: #c2183f;
@@ -61,15 +74,15 @@ html.dark .text-\[\#136f97\]:not([class*="dark:text-"]) {
   }
 
   [data-theme="dark"], .dark {
-    --bg: #030a14;
-    --card: rgba(14, 34, 54, 0.72);
-    --panel: rgba(9, 24, 42, 0.68);
-    --ink: #eaf3ff;
-    --text: #b6c6da;
-    --muted: #7b8ea6;
-    --accent: #33a4d4;
-    --accent-br: #46b6e4;
-    --line: rgba(255, 255, 255, 0.12);
+    --bg: #000D16;
+    --card: rgba(3, 27, 44, 0.72);
+    --panel: rgba(0, 13, 22, 0.68);
+    --ink: #F7FAFC;
+    --text: #E0E7EC;
+    --muted: #7F868E;
+    --accent: #10C9F4;
+    --accent-br: #55CFEB;
+    --line: rgba(85, 207, 235, 0.18);
     --ok: #38d47a;
     --warn: #e8b73a;
     --fail: #ff6b8a;
@@ -82,7 +95,7 @@ html.dark .text-\[\#136f97\]:not([class*="dark:text-"]) {
   }
 
   body {
-    font-family: 'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg);
     color: var(--text);
   }
@@ -349,3 +362,10 @@ html[data-theme="dark"] .text-teal-400    { color: #5eead4; }
   margin-bottom: 1rem;
 }
 .policy-text a { color: var(--brand); text-decoration: underline; }
+
+/* ── Типографика по бренд-стандарту ──────────────────────────────────
+   Заголовки набираются плотно: H1 −0.03em, H2 −0.02em, H3 −0.01em.
+   Без отрицательного трекинга крупный гротеск выглядит рыхлым. */
+h1 { letter-spacing: -0.03em; line-height: 1.02; }
+h2 { letter-spacing: -0.02em; line-height: 1.1; }
+h3 { letter-spacing: -0.01em; line-height: 1.2; }

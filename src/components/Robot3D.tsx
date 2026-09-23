@@ -14,7 +14,16 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
  * первый экран не должен ждать.
  */
 
-const MODEL_URL = 'https://uspeshnyy.ru/assets/agenty3/robot_rigged.glb';
+const MODEL_URL = 'https://uspeshnyy.ru/assets/agenty3/robot_anim.glb';
+
+// Клипы из модели. «wait» — покой между жестами, остальные показываем
+// по кругу; «heart_pose» вне очереди, по нажатию.
+const IDLE_CLIP = 'wait';
+const HEART_CLIP = 'heart_pose';
+const GESTURES = [
+  'look_around', 'greet_02', 'sing_02', 'greet_04',
+  'make_a_call_02', 'bow', 'dance_06',
+];
 
 interface Robot3DProps {
   className?: string;
@@ -116,6 +125,18 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     let dragStartY = 0;
     let dragBase = 0;
     let axisLocked: 'none' | 'x' | 'y' = 'none';
+    // Накопленный за жест путь и порог полного оборота.
+    // Свободный угол поворота: во время жеста и по инерции после него.
+    // pointer.x отвечает за слежение за курсором, а этот угол — за жест,
+    // они складываются в кадре.
+    let freeSpin = 0;
+    let spinVel = 0;
+    let spunBy = 0;
+    let lastDragX = 0;
+    // Порог «обернулся вокруг оси» — полный оборот в радианах.
+    const SPIN_FULL = Math.PI * 2;
+    // Ставится ниже, когда клипы уже загружены.
+    let onFullSpin = () => {};
 
     const beginDrag = (x: number, y: number) => {
       dragging = true;
@@ -123,6 +144,8 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       dragStartY = y;
       dragBase = target.x;
       axisLocked = 'none';
+      spunBy = 0;
+      lastDragX = x;
     };
 
     const moveDrag = (x: number, y: number): boolean => {
@@ -137,9 +160,15 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       }
       if (axisLocked !== 'x') return false;
       const w = host.clientWidth || 1;
-      const raw = Math.max(-1, Math.min(1, dragBase + (dx / w) * 2.2));
-      // Координаты касания приходят рывками — усредняем, иначе модель дрожит.
-      target.x += (raw - target.x) * 0.5;
+      // Ширина экрана = один полный оборот: жест через весь экран
+      // разворачивает модель кругом, как настоящий предмет в руке.
+      const step = (x - lastDragX) / w * Math.PI * 2;
+      lastDragX = x;
+      // Путь считаем по модулю: оборот туда-обратно тоже засчитывается.
+      spunBy += Math.abs(step);
+      freeSpin += step;
+      // Скорость для инерции — усредняем, касание приходит рывками.
+      spinVel += (step - spinVel) * 0.4;
       return true;
     };
 
@@ -147,20 +176,15 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       if (!dragging) return;
       dragging = false;
       axisLocked = 'none';
+      // Раскрутили вокруг оси — робот кланяется в ответ.
+      if (spunBy >= SPIN_FULL) onFullSpin();
+      spunBy = 0;
       target.x = 0;
       target.y = 0;
     };
 
     // iOS Safari: нативные touch-события, слушатель не passive —
     // иначе нельзя отменить прокрутку при горизонтальном жесте.
-    // Нажатие на модель — благодарность в ответ. Держим три секунды,
-    // потом робот возвращается к обычной очереди жестов.
-    const showHeart = () => {
-      heartUntil = performance.now() + 3000;
-      gestureTarget = 1;
-    };
-    surfaceClickTarget.push(showHeart);
-
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       beginDrag(e.touches[0].clientX, e.touches[0].clientY);
@@ -217,45 +241,17 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     let model: THREE.Object3D | null = null;
     let disposed = false;
 
-    // ── жест «показывает пальцем» ───────────────────────────────────────
-    // Анимаций в модели нет, поэтому строим жест сами по костям Mixamo:
-    // плечо и предплечье поднимают руку, пальцы складываются в указание.
-    type BoneKey =
-      | 'shoulder' | 'arm' | 'foreArm' | 'hand' | 'index1' | 'middle1' | 'ring1' | 'pinky1' | 'head'
-      | 'lShoulder' | 'lArm' | 'lForeArm' | 'lHand' | 'lIndex1' | 'lMiddle1' | 'lRing1' | 'lPinky1' | 'lThumb1';
-    const bones: Partial<Record<BoneKey, THREE.Object3D>> = {};
-    const rest: Partial<Record<BoneKey, THREE.Euler>> = {};
-
-    // Целевая поза: отклонения от исходной, в радианах.
-    type Pose = Partial<Record<BoneKey, [number, number, number]>>;
-
-    // Жест 1: правая рука вперёд, указательный палец вытянут.
-    const POSE_POINT: Pose = {
-      shoulder: [0, 0, -0.35],
-      arm: [-0.15, 0.1, -0.95],
-      foreArm: [0, -0.45, -0.55],
-      hand: [0.15, 0, -0.2],
-      middle1: [1.3, 0, 0],
-      ring1: [1.35, 0, 0],
-      pinky1: [1.4, 0, 0],
-    };
-
-    // Жест 2: левая рука поднята, палец вверх — «всё получится».
-    // Кости левой стороны зеркальны, поэтому знаки по Z обратные.
-    // Кости направлены по локальной оси Y (проверено по translation детей),
-    // поэтому подъём руки — это поворот по Z у плеча и сгиб локтя по X.
-    // Прежний вариант вращал по Z и уводил руку назад.
-    const POSE_THUMB: Pose = {
-      lShoulder: [0, 0, -0.25],
-      lArm: [0, 0, -1.35],
-      lForeArm: [-1.25, 0, -0.2],
-      lHand: [0, 0, 0.1],
-      lIndex1: [1.4, 0, 0],
-      lMiddle1: [1.45, 0, 0],
-      lRing1: [1.45, 0, 0],
-      lPinky1: [1.5, 0, 0],
-      lThumb1: [0, 0, -0.35],
-    };
+    // ── анимации ────────────────────────────────────────────────────────
+    // Раньше жесты собирались вручную из углов костей и выглядели как
+    // случайные рывки. Теперь в модели лежат готовые клипы — проигрываем их
+    // микшером и переключаем с перекрёстным затуханием.
+    let mixer: THREE.AnimationMixer | null = null;
+    const clips = new Map<string, THREE.AnimationAction>();
+    let current: THREE.AnimationAction | null = null;
+    let queueIndex = 0;
+    let nextGestureAt = 0;
+    // Пока идёт жест, очередь ждёт его конца плюс паузу.
+    let holdUntil = 0;
 
     // Вступление: после появления модель быстро делает три оборота
     // и плавно тормозит, передавая управление обычной логике.
@@ -263,39 +259,59 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     const SPIN_MS = 2600;
     let spinStart = 0;
 
-    // Сердце двумя руками: кисти сходятся перед грудью, пальцы согнуты
-    // навстречу друг другу. Кости идут по локальной оси Y, поэтому подъём
-    // рук — поворот по Z, а сведение к центру — по X у предплечий.
-    const POSE_HEART: Pose = {
-      shoulder: [0, 0, -0.2],
-      arm: [0, 0, -0.75],
-      foreArm: [-1.5, 0, -0.35],
-      hand: [0, 0.5, -0.6],
-      index1: [0.9, 0, 0],
-      middle1: [1.0, 0, 0],
-      ring1: [1.1, 0, 0],
-      pinky1: [1.2, 0, 0],
-
-      lShoulder: [0, 0, 0.2],
-      lArm: [0, 0, 0.75],
-      lForeArm: [-1.5, 0, 0.35],
-      lHand: [0, -0.5, 0.6],
-      lIndex1: [0.9, 0, 0],
-      lMiddle1: [1.0, 0, 0],
-      lRing1: [1.1, 0, 0],
-      lPinky1: [1.2, 0, 0],
-      lThumb1: [0, 0, -0.2],
+    /** Переключает клип с плавным переходом. */
+    const play = (name: string, fadeSec = 0.45, once = false) => {
+      const next = clips.get(name);
+      if (!next || next === current) return;
+      next.reset();
+      next.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity);
+      next.clampWhenFinished = once;
+      next.enabled = true;
+      next.setEffectiveWeight(1);
+      if (current) next.crossFadeFrom(current, fadeSec, true);
+      next.play();
+      current = next;
     };
 
-    // Два жеста чередуются: указание правой рукой, затем палец вверх левой.
-    // 0 — покой, 1 — поза показана целиком.
-    const SEQUENCE: Pose[] = [POSE_POINT, POSE_THUMB];
-    let poseIndex = 0;
-    let gesture = 0;
-    let gestureTarget = 0;
-    let nextGestureAt = performance.now() + 2600;
-    // Сердце показывается по нажатию и перебивает обычную очередь жестов.
-    let heartUntil = 0;
+    // Нажатия по кругу: сердце, танец, два приветствия. Повторное нажатие
+    // даёт новый ответ — с моделью хочется поиграть, а один и тот же жест
+    // на третий раз уже не читается как реакция.
+    const TAP_CLIPS = [HEART_CLIP, 'dance_06', 'greet_04', 'greet_02'];
+    let tapIndex = 0;
+
+    /** Играет клип вне очереди и отодвигает очередь на его длительность. */
+    const playOnce = (name: string, fade = 0.3) => {
+      const action = clips.get(name);
+      if (!action) return false;
+      // Тот же клип подряд play() пропустит — для нажатия это выглядит
+      // как «робот не отреагировал». Поэтому сбрасываем текущий вручную.
+      if (action === current) {
+        action.reset();
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        action.play();
+        holdUntil = performance.now() + action.getClip().duration * 1000;
+        nextGestureAt = holdUntil + 900;
+        return true;
+      }
+      play(name, fade, true);
+      holdUntil = performance.now() + action.getClip().duration * 1000;
+      nextGestureAt = holdUntil + 900;
+      return true;
+    };
+
+    const showHeart = () => {
+      // Клипа может не быть — тогда берём следующий, а не молчим.
+      for (let i = 0; i < TAP_CLIPS.length; i += 1) {
+        const name = TAP_CLIPS[(tapIndex + i) % TAP_CLIPS.length];
+        if (playOnce(name)) {
+          tapIndex = (tapIndex + i + 1) % TAP_CLIPS.length;
+          return;
+        }
+      }
+    };
+    surfaceClickTarget.push(showHeart);
+    onFullSpin = () => { playOnce('bow', 0.35); };
 
     const loader = new GLTFLoader();
     // Геометрия сжата EXT_meshopt_compression — подключаем декодер.
@@ -307,13 +323,31 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
         model = gltf.scene;
 
         // Вписываем модель в кадр независимо от её исходного масштаба.
-        const box = new THREE.Box3().setFromObject(model);
+        // Геометрия сжата KHR_mesh_quantization — в буфере лежат целые
+        // числа (±32767), настоящий размер даёт матрица узла. Box3 по
+        // скиннед-мешу читает сырые координаты и даёт бокс в сотни тысяч
+        // единиц, из-за чего модель ужималась в невидимую точку. Поэтому
+        // меряем по костям: их мировые позиции уже учитывают все матрицы.
+        model.updateWorldMatrix(true, true);
+        const box = new THREE.Box3();
+        let boneCount = 0;
+        const bonePos = new THREE.Vector3();
+        model.traverse(obj => {
+          if (!(obj as THREE.Bone).isBone) return;
+          obj.getWorldPosition(bonePos);
+          box.expandByPoint(bonePos);
+          boneCount += 1;
+        });
+        // Скелета нет (или модель не скиннута) — считаем по геометрии.
+        if (boneCount < 2) box.setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         const maxAxis = Math.max(size.x, size.y, size.z) || 1;
         // 1.85: голова упиралась в верхний край кадра, а поднятая рука
         // выходила за правый — оставляем запас со всех сторон.
-        const fit = 1.85 / maxAxis;
+        // Бокс по суставам уже самой модели — корпус, плечи и голова
+        // выходят за него, поэтому целевой размер берём меньше.
+        const fit = (boneCount > 1 ? 1.45 : 1.85) / maxAxis;
         model.scale.setScalar(fit);
         model.position.sub(center.multiplyScalar(fit));
         // Смещаем вниз: сверху оставался пустой воздух, а корпус упирался
@@ -326,44 +360,27 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
 
         model.traverse(obj => {
           const mesh = obj as THREE.Mesh;
-          if (mesh.isMesh) {
-            const mat = mesh.material as THREE.MeshStandardMaterial;
-            if (mat && 'envMapIntensity' in mat) {
-              // У модели свои PBR-текстуры — цвета не трогаем, только слегка
-              // поднимаем отклик на окружение, чтобы металл не выглядел плоским.
-              mat.envMapIntensity = 1.2;
-            }
-            // Скелетный меш нельзя отсекать по исходному боксу: при подъёме
-            // руки он вылезает за него и модель пропадает из кадра.
-            mesh.frustumCulled = false;
+          if (!mesh.isMesh) return;
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+          if (mat && 'envMapIntensity' in mat) {
+            // У модели свои PBR-текстуры — цвета не трогаем, только слегка
+            // поднимаем отклик на окружение, чтобы металл не выглядел плоским.
+            mat.envMapIntensity = 1.2;
           }
-          // Кости скелета Mixamo — по ним строим жест.
-          const n = obj.name;
-          if (n.endsWith('RightShoulder')) bones.shoulder = obj;
-          else if (n.endsWith('RightArm')) bones.arm = obj;
-          else if (n.endsWith('RightForeArm')) bones.foreArm = obj;
-          else if (n.endsWith('RightHand')) bones.hand = obj;
-          else if (n.endsWith('RightHandIndex1')) bones.index1 = obj;
-          else if (n.endsWith('RightHandMiddle1')) bones.middle1 = obj;
-          else if (n.endsWith('RightHandRing1')) bones.ring1 = obj;
-          else if (n.endsWith('RightHandPinky1')) bones.pinky1 = obj;
-          else if (n.endsWith('LeftShoulder')) bones.lShoulder = obj;
-          else if (n.endsWith('LeftArm')) bones.lArm = obj;
-          else if (n.endsWith('LeftForeArm')) bones.lForeArm = obj;
-          else if (n.endsWith('LeftHand')) bones.lHand = obj;
-          else if (n.endsWith('LeftHandIndex1')) bones.lIndex1 = obj;
-          else if (n.endsWith('LeftHandMiddle1')) bones.lMiddle1 = obj;
-          else if (n.endsWith('LeftHandRing1')) bones.lRing1 = obj;
-          else if (n.endsWith('LeftHandPinky1')) bones.lPinky1 = obj;
-          else if (n.endsWith('LeftHandThumb1')) bones.lThumb1 = obj;
-          else if (n.endsWith('Head')) bones.head = obj;
+          // Скелетный меш нельзя отсекать по исходному боксу: при подъёме
+          // руки он вылезает за него и модель пропадает из кадра.
+          mesh.frustumCulled = false;
         });
 
-        // Запоминаем исходные повороты: жест — это отклонение от них.
-        (Object.keys(bones) as BoneKey[]).forEach(k => {
-          const b = bones[k];
-          if (b) rest[k] = b.rotation.clone();
-        });
+        // Клипы сняты с того же скелета, поэтому играются как есть.
+        if (gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach(clip => {
+            clips.set(clip.name, mixer!.clipAction(clip));
+          });
+          play(clips.has(IDLE_CLIP) ? IDLE_CLIP : gltf.animations[0].name, 0);
+          nextGestureAt = performance.now() + 3000;
+        }
 
         root.add(model);
         spinStart = performance.now();
@@ -376,64 +393,45 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
     const clock = new THREE.Clock();
 
     let lastDraw = 0;
+    const startedAt = performance.now();
     const frame = () => {
       raf = requestAnimationFrame(frame);
       if (!visible || document.hidden || !model) return;
 
-      // 30 кадров в секунду: движение плавное, нагрузка вдвое ниже.
+      // 30 кадров в секунду в покое: движение плавное, нагрузка вдвое ниже.
+      // Во время жеста и раскрутки по инерции — каждый кадр, иначе быстрое
+      // вращение распадается на ступени.
       const now = performance.now();
-      if (!dragging && now - lastDraw < 33) return;
+      const spinning = dragging || Math.abs(spinVel) > 0.0005;
+      if (!spinning && now - lastDraw < 33) return;
       lastDraw = now;
 
-      const t = clock.getElapsedTime();
+      // getDelta обнуляет счётчик, поэтому общее время держим отдельно.
+      const t = (now - startedAt) / 1000;
 
       // Курсор догоняем с запозданием — движение читается живым, а не дёрганым.
       const follow = dragging ? 0.18 : 0.05;
       pointer.x += (target.x - pointer.x) * follow;
       pointer.y += (target.y - pointer.y) * follow;
 
-      // Жест повторяется циклом: поднял — подержал — опустил — пауза.
-      if (!reduced) {
+      // Очередь жестов: покой, жест, снова покой. Пока клип играет,
+      // ничего не переключаем — иначе движение обрывается на середине.
+      if (!reduced && mixer) {
         const now2 = performance.now();
-        if (now2 < heartUntil) {
-          // сердце держим целиком, не переключаясь на следующий жест
-          gestureTarget = 1;
-        } else if (now2 > nextGestureAt) {
-          if (gestureTarget > 0.5) {
-            // опускаем руку, держим паузу и переходим к следующему жесту
-            gestureTarget = 0;
+        if (now2 > holdUntil && now2 > nextGestureAt) {
+          if (current && current.getClip().name !== IDLE_CLIP) {
+            play(IDLE_CLIP, 0.5);
             nextGestureAt = now2 + 6000;
-            poseIndex = (poseIndex + 1) % SEQUENCE.length;
-          } else {
-            gestureTarget = 1;
-            nextGestureAt = now2 + 3600;
+          } else if (GESTURES.length) {
+            const name = GESTURES[queueIndex % GESTURES.length];
+            queueIndex += 1;
+            play(name, 0.45, true);
+            const dur = clips.get(name)?.getClip().duration ?? 2;
+            holdUntil = now2 + dur * 1000;
+            nextGestureAt = holdUntil + 400;
           }
         }
-        // 0.022 вместо 0.045: движение вдвое медленнее и спокойнее.
-        gesture += (gestureTarget - gesture) * 0.022;
-
-        // Сбрасываем все кости в покой, затем накладываем текущую позу —
-        // иначе прошлый жест «залипал» при переключении.
-        (Object.keys(rest) as BoneKey[]).forEach(k => {
-          const b = bones[k];
-          const r0 = rest[k];
-          if (b && r0) b.rotation.copy(r0);
-        });
-
-        // Пока держится сердце — показываем его, очередь ждёт.
-        const heartActive = now2 < heartUntil;
-        const pose = heartActive ? POSE_HEART : SEQUENCE[poseIndex];
-        (Object.keys(pose) as BoneKey[]).forEach(k => {
-          const b = bones[k];
-          const r0 = rest[k];
-          const v = pose[k];
-          if (!b || !r0 || !v) return;
-          b.rotation.set(
-            r0.x + v[0] * gesture,
-            r0.y + v[1] * gesture,
-            r0.z + v[2] * gesture
-          );
-        });
+        mixer.update(clock.getDelta());
       }
 
       if (reduced) {
@@ -456,13 +454,31 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
         // но никогда не отворачивается от зрителя.
         // Пальцем разрешаем довернуть сильнее: это осознанное действие,
         // в отличие от слежения за курсором.
-        const MAX_YAW = dragging ? 1.1 : 0.44;
-        const gain = dragging ? 1.1 : 0.34;
-        // Пока тянут пальцем, покачивание выключаем: наложение синусоиды
-        // на жест читалось как дрожание модели.
+        // Слежение за курсором ограничено ±25°, чтобы робот не отворачивался.
+        // Жест пальцем не ограничен ничем: его угол живёт отдельно и
+        // складывается сверху — так модель можно обернуть кругом.
+        const MAX_YAW = 0.44;
         const sway = dragging ? 0 : Math.sin(t * 0.32) * 0.05;
-        const yaw = pointer.x * gain + sway;
-        root.rotation.y = Math.max(-MAX_YAW, Math.min(MAX_YAW, yaw));
+        const look = Math.max(-MAX_YAW, Math.min(MAX_YAW, pointer.x * 0.34 + sway));
+
+        if (dragging) {
+          // Пока палец на модели — она слушается только его.
+        } else if (Math.abs(spinVel) > 0.0005) {
+          // Инерция: докручиваем и гасим, как настоящий волчок.
+          freeSpin += spinVel;
+          spinVel *= 0.94;
+        } else {
+          spinVel = 0;
+          // Возвращаемся к ближайшему «лицом к зрителю», а не откручиваем
+          // весь путь назад: оборот должен ощущаться завершённым.
+          const turns = Math.round(freeSpin / (Math.PI * 2));
+          freeSpin += (turns * Math.PI * 2 - freeSpin) * 0.04;
+          if (Math.abs(freeSpin - turns * Math.PI * 2) < 0.002) {
+            freeSpin = 0;
+          }
+        }
+
+        root.rotation.y = look + freeSpin;
         const pitch = -pointer.y * 0.16 + (dragging ? 0 : Math.sin(t * 0.45) * 0.02);
         root.rotation.x = Math.max(-0.2, Math.min(0.2, pitch));
         root.position.y = dragging ? 0 : Math.sin(t * 0.8) * 0.045;
