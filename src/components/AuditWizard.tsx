@@ -46,6 +46,9 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
   const [siteInput, setSiteInput] = useState('');
   const [peek, setPeek] = useState<{ state: 'idle' | 'loading' | 'ok' | 'block'; text: string }>({ state: 'idle', text: '' });
   const [agree, setAgree] = useState(false);
+  // Согласие на рассылку — отдельное и не предотмеченное:
+  // объединять его с согласием на обработку данных нельзя.
+  const [marketing, setMarketing] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState<{ bot: string; token: string } | null>(null);
@@ -61,6 +64,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
     setSiteInput('');
     setPeek({ state: 'idle', text: '' });
     setAgree(false);
+    setMarketing(false);
     setError('');
     setDone(null);
     peekFor.current = '';
@@ -134,6 +138,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
           // так же, как это делает форма на главной.
           answers: { niche: 'Другое', ...answers, website: siteInput.trim() },
           variant: 'agenty3',
+          marketing,
           company: honeypot.current?.value || '',
         }),
       });
@@ -374,6 +379,19 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                     >
                       обработку персональных данных
                     </button>
+                  </span>
+                </label>
+
+                <label className="mt-2.5 flex cursor-pointer items-start gap-2.5 text-sm text-[#3a4d63] dark:text-[#b6c6da]">
+                  <input
+                    type="checkbox"
+                    checked={marketing}
+                    onChange={e => setMarketing(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[#136f97]"
+                  />
+                  <span>
+                    Согласен(-на) получать письма о новых разборах и кейсах.
+                    Отписаться можно в любой момент.
                   </span>
                 </label>
 

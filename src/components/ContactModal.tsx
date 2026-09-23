@@ -19,6 +19,8 @@ export const ContactModal: React.FC<ContactModalProps> = ({
   const [company, setCompany] = useState('');
   const [message, setMessage] = useState(defaultTopic);
   const [submitted, setSubmitted] = useState(false);
+  // Отдельное согласие на рассылку, по умолчанию снято.
+  const [marketing, setMarketing] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,6 +38,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         body: JSON.stringify({
           name, contact, company, message,
           page: typeof window !== 'undefined' ? window.location.pathname : '',
+          marketing,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -59,6 +62,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
     window.setTimeout(() => {
       setSubmitted(false);
       setError('');
+      setMarketing(false);
     }, 250);
   };
 
@@ -197,6 +201,19 @@ export const ContactModal: React.FC<ContactModalProps> = ({
               </div>
 
               <div className="pt-2 space-y-2">
+                <label className="flex cursor-pointer items-start gap-2.5 text-xs text-[#3a4d63] dark:text-[#b6c6da]">
+                  <input
+                    type="checkbox"
+                    checked={marketing}
+                    onChange={e => setMarketing(e.target.checked)}
+                    className="mt-0.5 h-3.5 w-3.5 accent-[#136f97]"
+                  />
+                  <span>
+                    Согласен(-на) получать письма о новых разборах и кейсах.
+                    Отписаться можно в любой момент.
+                  </span>
+                </label>
+
                 {error && (
                   <p
                     role="alert"
