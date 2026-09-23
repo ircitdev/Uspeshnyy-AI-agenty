@@ -18,28 +18,29 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [webglReady, setWebglReady] = useState(false);
 
-  // Подключаем сцену в простое после первой отрисовки: LCP первого экрана
-  // не должен ждать загрузки three.
-  const [robot3dOn, setRobot3dOn] = useState(false);
+  // Решение «показываем 3D» принимаем сразу, при первом рендере: если
+  // ждать эффекта, между кадрами успевает мелькнуть картинка-подложка.
+  // Модель лёгкая (10 тыс. треугольников), поэтому включаем и на
+  // телефоне — отсекаем только совсем слабые устройства и экономию трафика.
+  const [robot3dOn] = useState(() => {
+    if (typeof navigator === 'undefined') return false;
+    const nav = navigator as Navigator & {
+      deviceMemory?: number;
+      connection?: { saveData?: boolean; effectiveType?: string };
+    };
+    const weak =
+      (nav.deviceMemory !== undefined && nav.deviceMemory < 3) ||
+      (navigator.hardwareConcurrency || 8) < 4 ||
+      nav.connection?.saveData === true ||
+      /2g/.test(nav.connection?.effectiveType || '');
+    return !weak;
+  });
+
+  // Сцена не запустилась — показываем картинку вместо пустого места.
+  const [robot3dFailed, setRobot3dFailed] = useState(false);
 
   useEffect(() => {
-    const start = () => {
-      setWebglReady(true);
-      // Модель лёгкая (10 тыс. треугольников), поэтому включаем и на
-      // телефоне. Отсекаем только совсем слабые устройства: мало ядер
-      // или экономия трафика.
-      const nav = navigator as Navigator & {
-        deviceMemory?: number;
-        connection?: { saveData?: boolean; effectiveType?: string };
-      };
-      const weak =
-        (nav.deviceMemory !== undefined && nav.deviceMemory < 3) ||
-        (navigator.hardwareConcurrency || 8) < 4 ||
-        nav.connection?.saveData === true ||
-        /2g/.test(nav.connection?.effectiveType || '');
-      if (!weak) setRobot3dOn(true);
-    };
-    start();
+    setWebglReady(true);
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -81,27 +82,43 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <RevealText 
                 text="AI-агенты" 
                 as="span" 
+                byChar
+                delay={1.05}
+                stagger={0.05}
+                duration={0.7}
+
                 className="block text-[3.3rem] sm:text-6xl lg:text-[4.4rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
               />
               <RevealText 
                 text="для бизнеса" 
                 as="span" 
+                byChar
+                delay={1.4}
+                stagger={0.05}
+                duration={0.7}
+
                 className="block text-[2.2rem] sm:text-5xl lg:text-[3.3rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
               />
               <span className="block mt-2">
                 <RevealText 
                   text="от 60 000 ₽" 
                   as="span" 
-                  delay={0.25}
+                  byChar
+                  delay={1.75}
+                  stagger={0.045}
                   className="block text-[1.55rem] sm:text-4xl lg:text-[2.6rem] leading-tight text-[#136f97] dark:text-[#33a4d4] font-bold" 
                 />
               </span>
             </h1>
             {/* Kicker Tag */}
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 self-center lg:self-start px-2.5 sm:px-3.5 py-1.5 rounded-full text-[0.6rem] sm:text-[0.72rem] font-bold tracking-normal sm:tracking-wider uppercase whitespace-nowrap text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mt-5 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, delay: 2.0, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-1.5 sm:gap-2 self-center lg:self-start px-2.5 sm:px-3.5 py-1.5 rounded-full text-[0.6rem] sm:text-[0.72rem] font-bold tracking-normal sm:tracking-wider uppercase whitespace-nowrap text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mt-5 mb-6">
               <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
               <span>Автоматизация · AI · Реальные результаты</span>
-            </div>
+            </motion.div>
 
 
             {/* Lead description with TextRevealMask */}
@@ -109,7 +126,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <TextRevealMask
                 text="Отдайте AI повторяющиеся задачи: заявки, звонки, переписку и отчеты. Агенты работают в ваших системах, принимают решения по вашим регламентам и доводят клиента до результата."
                 className="text-base sm:text-lg text-[#3a4d63] dark:text-[#b6c6da] leading-relaxed"
-                delay={0.3}
+                delay={2.15}
               />
             </div>
 
@@ -117,7 +134,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
             <motion.div 
               initial={{ opacity: 0, y: 22, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.35, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.6, delay: 2.35, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3.5 mb-10 w-full sm:w-auto"
             >
               <motion.div
@@ -228,7 +245,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <motion.div
                 initial={{ opacity: 0, scale: 0.72, x: -35, y: -20 }}
                 animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.75, delay: 0.65, ease: [0.2, 0.9, 0.3, 1] }}
+                transition={{ duration: 0.75, delay: 0.1, ease: [0.2, 0.9, 0.3, 1] }}
               >
                 {/* Continuous Smooth Levitation */}
                 <motion.div
@@ -262,7 +279,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <motion.div
                 initial={{ opacity: 0, scale: 0.72, x: 35, y: 20 }}
                 animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.75, delay: 0.88, ease: [0.2, 0.9, 0.3, 1] }}
+                transition={{ duration: 0.75, delay: 0.28, ease: [0.2, 0.9, 0.3, 1] }}
               >
                 {/* Continuous Smooth Levitation */}
                 <motion.div
@@ -299,7 +316,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <motion.div
                 initial={{ opacity: 0, scale: 0.76, y: 50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.85, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.85, delay: 0.65, ease: [0.16, 1, 0.3, 1] }}
                 style={{ touchAction: 'pan-y' }}
               >
                 {/* Continuous Smooth Levitation */}
@@ -315,9 +332,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                   }}
                 >
                   <div className="relative aspect-square">
-                    {/* Картинка-подложка нужна только там, где 3D не запускается
-                        (слабое устройство, нет WebGL). */}
-                    {!robot3dOn && (
+                    {/* Картинка нужна только там, где 3D не запускается
+                        вовсе: слабое устройство, экономия трафика, нет
+                        WebGL. В обычном случае её не грузим совсем —
+                        иначе перед моделью мелькает статичный робот. */}
+                    {(!robot3dOn || robot3dFailed) && (
                       <img 
                         src="https://uspeshnyy.ru/assets/agenty3/hero-robot2.webp" 
                         alt="AI-агент Успешный"
@@ -329,7 +348,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                     {robot3dOn && (
                       <Suspense fallback={null}>
                         <div className="absolute inset-0 -m-[12%]">
-                          <Robot3D />
+                          <Robot3D onFail={() => setRobot3dFailed(true)} />
                         </div>
                       </Suspense>
                     )}
@@ -349,7 +368,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
               <motion.div
                 initial={{ opacity: 0, scale: 0.8, y: 25, rotate: -6 }}
                 animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
-                transition={{ duration: 0.75, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.75, delay: 0.46, ease: [0.22, 1, 0.36, 1] }}
               >
                 {/* Continuous Smooth Levitation */}
                 <motion.div

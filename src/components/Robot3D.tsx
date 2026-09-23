@@ -27,9 +27,12 @@ const GESTURES = [
 
 interface Robot3DProps {
   className?: string;
+  /** Вызывается, когда сцену не удалось запустить: нет WebGL или
+      модель не загрузилась. Родитель показывает картинку вместо неё. */
+  onFail?: () => void;
 }
 
-export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
+export const Robot3D: React.FC<Robot3DProps> = ({ className = '', onFail }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -42,6 +45,7 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'high-performance' });
     } catch {
       setFailed(true);
+      onFail?.();
       return;
     }
 
@@ -386,7 +390,7 @@ export const Robot3D: React.FC<Robot3DProps> = ({ className = '' }) => {
         spinStart = performance.now();
       },
       undefined,
-      () => { if (!disposed) setFailed(true); }
+      () => { if (!disposed) { setFailed(true); onFail?.(); } }
     );
 
     let raf = 0;

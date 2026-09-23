@@ -369,3 +369,55 @@ html[data-theme="dark"] .text-teal-400    { color: #5eead4; }
 h1 { letter-spacing: -0.03em; line-height: 1.02; }
 h2 { letter-spacing: -0.02em; line-height: 1.1; }
 h3 { letter-spacing: -0.01em; line-height: 1.2; }
+
+/* ── Посимвольное появление заголовков ───────────────────────────────
+   Буквы выезжают снизу одна за другой. Обрезку делает слово, а не
+   буква: так у «р», «у», «щ» не срезаются нижние выносные элементы. */
+.reveal-text .reveal-word {
+  display: inline-block;
+  overflow: hidden;
+  /* Запас под выносные элементы: без него хвосты букв обрезаются
+     нижней границей слова. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  vertical-align: top;
+}
+
+.reveal-text .reveal-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  filter: blur(var(--reveal-blur, 8px));
+  will-change: transform, opacity;
+}
+
+.reveal-text.is-shown .reveal-char {
+  animation: reveal-char var(--reveal-duration, 0.6s)
+    cubic-bezier(0.2, 0.65, 0.3, 0.9) forwards;
+  animation-delay: calc(
+    var(--reveal-delay, 0.05s) + var(--reveal-stagger, 0.03s) * var(--index)
+  );
+}
+
+@keyframes reveal-char {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+    filter: blur(var(--reveal-blur, 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Просили убрать движение — показываем текст сразу, без выезда. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-text .reveal-char {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none;
+  }
+}

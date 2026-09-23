@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
 interface RevealTextProps {
@@ -10,8 +10,29 @@ interface RevealTextProps {
   stagger?: number;
   blur?: boolean;
   once?: boolean;
+  /**
+   * Появление по буквам вместо слов. Волна по символам читается эффектнее,
+   * но на длинной фразе тянется слишком долго, поэтому включается точечно —
+   * в hero, где заголовок короткий и держит на себе первый экран.
+   */
+  byChar?: boolean;
 }
 
+/**
+ * Появление текста снизу вверх.
+ *
+ * По умолчанию едут слова — так длинный заголовок отыгрывает за
+ * разумное время. С `byChar` едут отдельные буквы: строка наливается
+ * слева направо волной.
+ *
+ * Посимвольный режим сделан на CSS-анимации, а не на motion: в заголовке
+ * это десятки узлов сразу, и отдать их композитору дешевле, чем считать
+ * каждый кадр в JS. Задержка буквы берётся из её номера через переменную
+ * `--index`.
+ *
+ * Пробелы в обоих режимах остаются обычными текстовыми узлами между
+ * обёртками — строка переносится по словам, а не рвётся по буквам.
+ */
 export const RevealText: React.FC<RevealTextProps> = ({
   text,
   className = '',
@@ -21,10 +42,79 @@ export const RevealText: React.FC<RevealTextProps> = ({
   stagger = 0.06,
   blur = true,
   once = true,
+  byChar = false,
 }) => {
-  // Split the text into words
   const words = text.split(' ');
 
+  // ── Посимвольный режим ──────────────────────────────────────────────
+  const hostRef = useRef<HTMLElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (!byChar) return;
+    const host = hostRef.current;
+    if (!host) return;
+    // Заголовок не должен отыграть до того, как читатель до него дошёл.
+    const io = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) {
+          setShown(true);
+          if (once) io.disconnect();
+        } else if (!once) {
+          setShown(false);
+        }
+      },
+      { rootMargin: '-40px' }
+    );
+    io.observe(host);
+    return () => io.disconnect();
+  }, [byChar, once]);
+
+  if (byChar) {
+    // Нумерация букв сквозная через всю строку — иначе волна
+    // перезапускалась бы на каждом слове.
+    let charIndex = 0;
+    // Буквы едут чаще слов: тот же шаг на символах читался бы как задержка.
+    const charStagger = stagger / 2;
+
+    return (
+      <Component
+        ref={hostRef as React.Ref<never>}
+        className={`reveal-text ${shown ? 'is-shown' : ''} ${className}`}
+        style={
+          {
+            '--reveal-duration': `${duration}s`,
+            '--reveal-delay': `${delay}s`,
+            '--reveal-stagger': `${charStagger}s`,
+            '--reveal-blur': blur ? '8px' : '0px',
+          } as React.CSSProperties
+        }
+      >
+        {words.map((word, wordIdx) => (
+          <React.Fragment key={wordIdx}>
+            {wordIdx > 0 && ' '}
+            <span className="reveal-word">
+              {Array.from(word).map(char => {
+                const i = charIndex;
+                charIndex += 1;
+                return (
+                  <span
+                    key={i}
+                    className="reveal-char"
+                    style={{ '--index': i } as React.CSSProperties}
+                  >
+                    {char}
+                  </span>
+                );
+              })}
+            </span>
+          </React.Fragment>
+        ))}
+      </Component>
+    );
+  }
+
+  // ── Пословный режим (прежнее поведение) ─────────────────────────────
   const containerVariants = {
     hidden: {},
     visible: {
@@ -84,3 +174,5 @@ export const RevealText: React.FC<RevealTextProps> = ({
     </MotionComponent>
   );
 };
+
+export default RevealText;
