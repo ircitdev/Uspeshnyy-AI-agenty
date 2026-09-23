@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { goal } from '../lib/metrika';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, CheckCircle2, Phone, Building2, User, FileText } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
         setError(data.error || 'Не удалось отправить заявку.');
         return;
       }
+      goal('lead_submit');
       setSubmitted(true);
     } catch {
       setError('Нет связи с сервером. Напишите нам в Telegram — ответим сразу.');
@@ -71,7 +73,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
 Компания/Сфера: ${company || 'Не указано'}
 Задача: ${message}`
     );
-    window.open(`https://t.me/uspeshnyy?text=${text}`, '_blank');
+    window.open(`https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents&text=${text}`, '_blank');
     handleClose();
   };
 
@@ -202,7 +204,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({
                   >
                     {error}{' '}
                     <a
-                      href="https://t.me/uspeshnyy"
+                      href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-semibold underline"

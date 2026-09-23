@@ -754,7 +754,7 @@ export const AiReadinessAssessment: React.FC<AiReadinessAssessmentProps> = ({ on
                       </motion.button>
 
                       <motion.a
-                        href={`https://t.me/uspeshnyy?text=${encodeURIComponent(
+                        href={`https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents&text=${encodeURIComponent(
                           `Привет! Прошел аудит готовности к AI-агентам на сайте: индекс готовности ${result.score}%. Хочу разобрать процесс внедрения для моего бизнеса.`
                         )}`}
                         target="_blank"

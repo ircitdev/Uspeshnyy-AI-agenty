@@ -84,7 +84,7 @@ export const SmartQuiz: React.FC<SmartQuizProps> = ({ onOpenConsultation }) => {
 
   const handleTelegramPreFilled = () => {
     const text = encodeURIComponent(`Здравствуйте! Прошел тест на сайте: у меня проблема «${currentResult.title}» (${currentResult.desc}). Хочу обсудить внедрение агента.`);
-    window.open(`https://t.me/uspeshnyy?text=${text}`, '_blank');
+    window.open(`https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents&text=${text}`, '_blank');
   };
 
   return (

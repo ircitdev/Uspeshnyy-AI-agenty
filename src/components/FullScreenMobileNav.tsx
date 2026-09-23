@@ -208,7 +208,7 @@ export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
 
               {/* Secondary Telegram action */}
               <a
-                href="https://t.me/uspeshnyy"
+                href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-2.5 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 bg-white/70 dark:bg-[#0e2236]/70 border border-[#147aa6]/20 dark:border-white/15 text-[#136f97] dark:text-[#38bdf8] shadow-xs hover:scale-101 active:scale-98 transition-all"

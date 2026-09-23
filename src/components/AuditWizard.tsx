@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { goal } from '../lib/metrika';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ArrowRight, Check } from 'lucide-react';
 
@@ -139,6 +140,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
       const d = await r.json();
       if (!d.ok || !d.bot) throw new Error(d.error || 'no token');
       setDone({ bot: d.bot, token: d.token });
+      goal('audit_submit');
       const w = window as unknown as { ym?: (id: number, a: string, g: string) => void };
       if (typeof w.ym === 'function') w.ym(29659030, 'reachGoal', 'audit_submit');
     } catch {
@@ -226,7 +228,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                   Отчёт уже собирается и будет ждать вас в Telegram — обычно это меньше минуты.
                   Там же можно задать вопросы.
                 </p>
-                <a href={done.bot} target="_blank" rel="noopener noreferrer" className={primaryBtn}>
+                <a href={done.bot} target="_blank" rel="noopener noreferrer" className={primaryBtn} onClick={() => goal('audit_bot_open')}>
                   Получить отчёт в Telegram
                   <ArrowRight className="h-4 w-4" />
                 </a>

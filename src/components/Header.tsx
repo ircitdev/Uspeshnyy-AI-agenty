@@ -221,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
           </button>
 
           <a 
-            href="https://t.me/uspeshnyy" 
+            href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents" 
             target="_blank" 
             rel="noopener noreferrer" 
             aria-label="Написать в Telegram"

@@ -42,6 +42,11 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
   onOpenConsultation
 }) => {
   // Input query state for custom testing
+  // Одна вкладка — один диалог: по этому ключу реплики склеиваются в админке.
+  const sessionId = React.useMemo(
+    () => Math.random().toString(36).slice(2) + Date.now().toString(36),
+    []
+  );
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'agent'; text: string; time: string; tone?: AgentTone }>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -361,7 +366,12 @@ const STREET_DIALOGUES: Record<string, Array<{ role: 'user' | 'agent'; text: str
       const res = await fetch('https://uspeshnyy.ru/api/sim/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: query, agent: selectedAgentId, tone: activeTone }),
+        body: JSON.stringify({
+          text: query,
+          agent: selectedAgentId,
+          tone: activeTone,
+          session: sessionId,
+        }),
         signal: ctrl.signal,
       });
       clearTimeout(timer);

@@ -14,7 +14,7 @@ export const FinalCta: React.FC<FinalCtaProps> = ({ onOpenConsultation, onOpenCo
     <section className="py-10 sm:py-16">
       <div className="max-w-[1480px] mx-auto px-5 sm:px-7">
         
-        <div className="rounded-3xl p-6 pb-0 sm:p-10 sm:pb-0 bg-gradient-to-br from-[#136f97]/15 via-white/90 to-white/95 dark:from-[#33a4d4]/15 dark:via-[#0e2236] dark:to-[#0e2236] border-2 border-[#136f97]/30 dark:border-[#33a4d4]/30 shadow-2xl relative overflow-hidden">
+        <div className="rounded-3xl p-6 pb-0 sm:p-10 sm:pb-0 bg-gradient-to-br from-[#136f97]/15 via-white/90 to-white/95 dark:from-[#33a4d4]/15 dark:via-[#0e2236] dark:to-[#0e2236] border-2 border-[#136f97]/30 dark:border-[#33a4d4]/30 shadow-2xl relative">
           
           {/* items-stretch вместо items-center: иллюстрация стоит на нижней
               границе блока, а не висит по центру колонки. */}
@@ -23,7 +23,7 @@ export const FinalCta: React.FC<FinalCtaProps> = ({ onOpenConsultation, onOpenCo
             {/* Illustration */}
             {/* На мобильном фото внизу блока и прижато к нижней кромке,
                 поверх него ложится рукописная подпись. */}
-            <div className="order-2 lg:order-1 lg:col-span-4 relative flex justify-center items-end self-end overflow-hidden -mb-6 sm:-mb-10 lg:mb-0">
+            <div className="order-2 lg:order-1 lg:col-span-4 relative flex justify-center items-end self-end -mb-6 sm:-mb-10 lg:mb-0">
               {/* Всплывают снизу: сначала фигуры, следом надпись за ними. */}
               <motion.img
                 src="https://uspeshnyy.ru/assets/agenty3/start-robot2.webp"
@@ -67,7 +67,7 @@ export const FinalCta: React.FC<FinalCtaProps> = ({ onOpenConsultation, onOpenCo
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mb-6 w-full sm:w-auto">
                 <motion.a 
-                  href="https://t.me/uspeshnyy" 
+                  href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.03, y: -1 }}

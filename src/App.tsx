@@ -1,4 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
+import { goal } from './lib/metrika';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { BotVsAgent } from './components/BotVsAgent';
@@ -38,11 +39,13 @@ export default function App() {
   // запасным путём, её открывает handleOpenContactForm.
   const handleOpenConsultation = (topic?: string) => {
     if (topic) setConsultationTopic(topic);
+    goal('audit_open', { place: topic || '-' });
     setIsAuditOpen(true);
   };
 
   const handleOpenContactForm = (topic?: string) => {
     if (topic) setConsultationTopic(topic);
+    goal('lead_form_open');
     setIsConsultationOpen(true);
   };
 
@@ -63,6 +66,17 @@ export default function App() {
 
   useScrollAnimations();
   useThemedImages();
+
+  // Клики по любым ссылкам в бота — одним делегированным слушателем:
+  // кнопок много и они разбросаны по секциям.
+  React.useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.('a[href*="t.me/uspeshnyy"]');
+      if (a) goal('tg_click', { href: (a as HTMLAnchorElement).href.slice(0, 120) });
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#eef4fa] dark:bg-[#030a14] text-[#3a4d63] dark:text-[#b6c6da] transition-colors duration-300">

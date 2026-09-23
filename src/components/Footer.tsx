@@ -41,7 +41,7 @@ export const Footer: React.FC = () => {
             Блог
           </motion.a>
           <motion.a 
-            href="https://t.me/uspeshnyy" 
+            href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents" 
             target="_blank" 
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05, y: -1 }}

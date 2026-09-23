@@ -488,7 +488,7 @@ export const DevelopmentRoadmap: React.FC<DevelopmentRoadmapProps> = ({ onOpenCo
             </motion.button>
             
             <motion.a
-              href="https://t.me/uspeshnyy"
+              href="https://t.me/uspeshnyy?utm_source=agenty&utm_medium=cta&utm_campaign=ai_agents"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.03, y: -1 }}
