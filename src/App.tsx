@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { BotVsAgent } from './components/BotVsAgent';
 import { AgentsShowcase } from './components/AgentsShowcase';
-import { AgentSimulator } from './components/AgentSimulator';
-import { RoiCalculator } from './components/RoiCalculator';
+// Симулятор и калькулятор тянут Recharts и лежат глубоко на странице —
+// грузим их отдельными кусками, когда до них доскроллили.
+const AgentSimulator = lazy(() =>
+  import('./components/AgentSimulator').then(m => ({ default: m.AgentSimulator })));
+const RoiCalculator = lazy(() =>
+  import('./components/RoiCalculator').then(m => ({ default: m.RoiCalculator })));
 import { SmartQuiz } from './components/SmartQuiz';
 import { QuickPoll } from './components/QuickPoll';
 import { AiReadinessAssessment } from './components/AiReadinessAssessment';
@@ -16,6 +20,9 @@ import { PricingSection } from './components/PricingSection';
 import { FaqSection } from './components/FaqSection';
 import { FinalCta } from './components/FinalCta';
 import { ContactModal } from './components/ContactModal';
+import { StickyCta } from './components/StickyCta';
+import { AuditWizard } from './components/AuditWizard';
+import { useScrollAnimations, useThemedImages } from './hooks/useScrollAnimations';
 import { Footer } from './components/Footer';
 import { ScrollReveal } from './components/ScrollReveal';
 
@@ -24,7 +31,17 @@ export default function App() {
   const [isConsultationOpen, setIsConsultationOpen] = useState<boolean>(false);
   const [consultationTopic, setConsultationTopic] = useState<string>('Разбор процесса');
 
+  const [isAuditOpen, setIsAuditOpen] = useState<boolean>(false);
+
+  // Основное целевое действие — мастер разбора: человек получает отчёт
+  // в Telegram за минуту вместо ожидания звонка. Простая форма осталась
+  // запасным путём, её открывает handleOpenContactForm.
   const handleOpenConsultation = (topic?: string) => {
+    if (topic) setConsultationTopic(topic);
+    setIsAuditOpen(true);
+  };
+
+  const handleOpenContactForm = (topic?: string) => {
     if (topic) setConsultationTopic(topic);
     setIsConsultationOpen(true);
   };
@@ -43,6 +60,9 @@ export default function App() {
       simEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  useScrollAnimations();
+  useThemedImages();
 
   return (
     <div className="min-h-screen flex flex-col bg-[#eef4fa] dark:bg-[#030a14] text-[#3a4d63] dark:text-[#b6c6da] transition-colors duration-300">
@@ -72,16 +92,20 @@ export default function App() {
 
         {/* Interactive Live Demo Simulator */}
         <ScrollReveal direction="up" distance={32}>
+          <Suspense fallback={<div className="min-h-[560px]" aria-hidden="true" />}>
           <AgentSimulator 
             selectedAgentId={selectedAgentForDemo}
             onSelectAgent={setSelectedAgentForDemo}
             onOpenConsultation={handleOpenConsultation}
           />
+          </Suspense>
         </ScrollReveal>
 
         {/* ROI & Payback Calculator */}
         <ScrollReveal direction="up" distance={30}>
-          <RoiCalculator onOpenConsultation={handleOpenConsultation} />
+          <Suspense fallback={<div className="min-h-[520px]" aria-hidden="true" />}>
+            <RoiCalculator onOpenConsultation={handleOpenConsultation} />
+          </Suspense>
         </ScrollReveal>
 
         {/* Diagnostic Quiz */}
@@ -113,10 +137,12 @@ export default function App() {
         <section className="py-10 sm:py-14" id="how">
           <div className="max-w-[1480px] mx-auto px-5 sm:px-7">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-              <ScrollReveal direction="left" distance={28}>
-                <CaseResults />
+              <ScrollReveal direction="up" distance={28}>
+                <div id="cases">
+                  <CaseResults />
+                </div>
               </ScrollReveal>
-              <ScrollReveal direction="right" distance={28}>
+              <ScrollReveal direction="up" distance={28} delay={0.08}>
                 <WorkProcess />
               </ScrollReveal>
             </div>
@@ -139,11 +165,15 @@ export default function App() {
 
         {/* Final CTA Banner */}
         <ScrollReveal direction="scale" distance={20}>
-          <FinalCta onOpenConsultation={handleOpenConsultation} />
+          <FinalCta onOpenConsultation={handleOpenConsultation} onOpenContactForm={handleOpenContactForm} />
         </ScrollReveal>
       </main>
 
       {/* Footer */}
+      <AuditWizard isOpen={isAuditOpen} onClose={() => setIsAuditOpen(false)} />
+
+      <StickyCta onOpenConsultation={handleOpenConsultation} />
+
       <Footer />
 
       {/* Consultation Modal */}

@@ -36,7 +36,7 @@ export interface FaqItem {
   category: 'general' | 'technical' | 'security' | 'pricing';
 }
 
-export type AgentTone = 'professional' | 'friendly' | 'concise';
+export type AgentTone = 'professional' | 'friendly' | 'concise' | 'street';
 
 export interface ToneSetting {
   id: AgentTone;
@@ -51,7 +51,7 @@ export interface ToneSetting {
     conciseness: number;
   };
   samplePhrase: string;
-  iconName: 'Briefcase' | 'Smile' | 'Zap';
+  iconName: 'Briefcase' | 'Smile' | 'Zap' | 'Flame';
 }
 
 export interface SimulatorMessage {

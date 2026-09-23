@@ -2,7 +2,7 @@
 <html lang="ru" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <script>
       (function() {
         try {
@@ -49,7 +49,10 @@
         animation: loader-breath 2.6s ease-in-out infinite;
       }
       @keyframes loader-breath { 0%,100% { opacity:.5; transform:scale(1); } 50% { opacity:1; transform:scale(1.12); } }
+      /* display:none после ухода — иначе скрытый слой держит ширину
+         и даёт странице горизонтальную прокрутку в 8px. */
       #loader.done { transform: translateY(-100%); visibility: hidden; }
+      #loader.gone { display: none; }
       /* visibility:hidden не гасит анимации — снимаем их явно */
       #loader.done, #loader.done *, #loader.done::before, #loader.done::after,
       #loader.done *::before, #loader.done *::after { animation: none !important; }
@@ -132,7 +135,11 @@
           var el = document.getElementById('loader');
           if (!el) return;
           var wait = Math.max(0, 900 - (performance.now() - t0));
-          setTimeout(function () { el.classList.add('done'); }, wait);
+          setTimeout(function () {
+            el.classList.add('done');
+            // после ухода убираем из раскладки: скрытый слой держал ширину
+            setTimeout(function () { el.classList.add('gone'); }, 700);
+          }, wait);
         }
         // ждём появления содержимого в #root, с запасным таймером
         var root = document.getElementById('root');

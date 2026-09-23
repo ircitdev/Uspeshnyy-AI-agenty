@@ -159,6 +159,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     const box = scrollContainerRef.current;
     const end = messagesEndRef.current;
     if (!box || !end) return;
+    // На мобильном контейнер не ограничен по высоте и не прокручивается —
+    // сообщения идут в потоке страницы, доводить его до низа нечего.
+    if (box.scrollHeight <= box.clientHeight + 4) return;
     box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
   }, [visibleCount, isProcessing, isTypingInternal]);
 
@@ -213,11 +216,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     <div className={`flex flex-col h-full ${className}`}>
       {/* Top Controls: Replay & Status */}
       {showReplay && (
-        <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-[#147aa6]/15 dark:border-white/10 text-xs">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pb-2.5 mb-3 border-b border-[#147aa6]/15 dark:border-white/10 text-xs">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
             <span className="flex items-center gap-1.5 text-xs text-[#5b7188] dark:text-[#7b8ea6]">
               <Sparkles className="w-3.5 h-3.5 text-[#136f97] dark:text-[#33a4d4]" />
-              <span>Сценарий диалога:</span>
+              <span className="whitespace-nowrap">Сценарий диалога:</span>
             </span>
             <span className="font-semibold text-[#0d1f36] dark:text-[#eaf3ff] text-xs">
               {displayedMessages.length} из {messages.length} сообщений
@@ -248,7 +251,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
               title="Воспроизвести диалог с анимацией заново"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>Воспроизвести заново</span>
+              <span className="whitespace-nowrap">Воспроизвести заново</span>
             </motion.button>
           </div>
         </div>
@@ -257,7 +260,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       {/* Messages Scroll Area */}
       <div 
         ref={scrollContainerRef}
-        className="flex-1 space-y-3.5 overflow-y-auto max-h-[320px] pr-1.5 pb-2 scrollbar-thin"
+        className="flex-1 space-y-3.5 overflow-y-visible sm:overflow-y-auto sm:max-h-[320px] rounded-2xl border border-[#147aa6]/12 bg-gradient-to-b from-[#f2f7fb] to-[#eaf1f7] p-3 pr-2 dark:border-white/8 dark:from-[#0a1826] dark:to-[#08131f] scrollbar-thin"
       >
         <AnimatePresence initial={false}>
           {displayedMessages.map((msg, index) => {
@@ -293,9 +296,9 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 )}
 
                 {/* Message Bubble + Meta */}
-                <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[86%] sm:max-w-[82%]`}>
+                <div className={`flex flex-col min-w-0 ${isUser ? 'items-end' : 'items-start'} max-w-[calc(100%-2.75rem)] sm:max-w-[82%]`}>
                   {/* Sender Name if applicable */}
-                  <span className="text-[0.68rem] text-[#5b7188] dark:text-[#7b8ea6] px-1 mb-1 font-medium">
+                  <span className="text-[0.68rem] text-[#5b7188] dark:text-[#7b8ea6] px-1 mb-1 font-medium whitespace-nowrap">
                     {isUser ? (callerName || 'Вы (Клиент)') : agentName}
                   </span>
 

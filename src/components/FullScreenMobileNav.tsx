@@ -4,9 +4,6 @@ import {
   X, 
   ArrowUpRight, 
   Send, 
-  Sun, 
-  Moon, 
-  Monitor, 
   Sparkles, 
   Bot, 
   CheckCircle2, 
@@ -18,8 +15,6 @@ import {
 interface FullScreenMobileNavProps {
   isOpen: boolean;
   onClose: () => void;
-  theme: 'light' | 'dark' | 'auto';
-  onThemeChange: (theme: 'light' | 'dark' | 'auto') => void;
   onOpenConsultation: (topic?: string) => void;
 }
 
@@ -47,8 +42,6 @@ const NAV_ITEMS: NavItem[] = [
 export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
   isOpen,
   onClose,
-  theme,
-  onThemeChange,
   onOpenConsultation,
 }) => {
   // Lock body scroll when menu is open
@@ -93,11 +86,16 @@ export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Навигационное меню"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          // Мягкое всплытие вместо резкого появления: панель чуть подъезжает
+          // снизу и проявляется, закрывается быстрее, чем открывается.
+          initial={{ opacity: 0, y: 14, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.99, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } }}
+          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-50 lg:hidden flex flex-col bg-[#eef4fa]/98 dark:bg-[#030913]/98 backdrop-blur-3xl overflow-y-auto"
+          // inset-0 при прокрученной странице давал высоту в 78px — меню
+          // схлопывалось в полоску. Задаём размеры вьюпорта явно.
+          style={{ top: 0, left: 0, width: '100vw', height: '100dvh' }}
         >
           {/* Ambient organic background glows */}
           <div 
@@ -112,9 +110,12 @@ export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
           {/* Top Bar Header */}
           <div className="relative z-10 sticky top-0 px-6 py-4 flex items-center justify-between border-b border-[#147aa6]/15 dark:border-white/10 bg-[#eef4fa]/80 dark:bg-[#030913]/80 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#136f97] to-[#0ea5e9] flex items-center justify-center text-white font-black text-sm shadow-sm">
-                AI
-              </div>
+              <img
+                src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/common/logo.svg"
+                alt=""
+                aria-hidden="true"
+                className="w-8 h-auto shrink-0"
+              />
               <div>
                 <span className="font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] text-base tracking-tight block">
                   Успешный
@@ -144,9 +145,9 @@ export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
               {NAV_ITEMS.map((item, index) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 + index * 0.035, duration: 0.25 }}
+                  initial={{ opacity: 0, x: -18, filter: 'blur(3px)' }}
+                  animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                  transition={{ delay: 0.08 + index * 0.045, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <a
                     href={item.href}
@@ -215,52 +216,6 @@ export const FullScreenMobileNav: React.FC<FullScreenMobileNavProps> = ({
                 <Send className="w-3.5 h-3.5" />
                 <span>Написать архитектору в Telegram</span>
               </a>
-
-              {/* Theme Selector */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-white/50 dark:bg-[#09182a]/50 border border-[#147aa6]/15 dark:border-white/10">
-                <span className="text-xs font-bold text-[#5b7188] dark:text-[#7b8ea6]">
-                  Оформление:
-                </span>
-                
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white/80 dark:bg-[#0e2236] border border-[#147aa6]/20 dark:border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => onThemeChange('light')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                      theme === 'light'
-                        ? 'bg-[#136f97] text-white shadow-xs'
-                        : 'text-[#5b7188] hover:text-[#0d1f36] dark:text-[#7b8ea6]'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5" />
-                    <span>Светлая</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onThemeChange('dark')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                      theme === 'dark'
-                        ? 'bg-[#38bdf8] text-[#04121f] shadow-xs'
-                        : 'text-[#5b7188] hover:text-[#0d1f36] dark:text-[#7b8ea6]'
-                    }`}
-                  >
-                    <Moon className="w-3.5 h-3.5" />
-                    <span>Тёмная</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onThemeChange('auto')}
-                    className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                      theme === 'auto'
-                        ? 'bg-[#136f97]/15 text-[#136f97] dark:text-[#38bdf8]'
-                        : 'text-[#5b7188] hover:text-[#0d1f36] dark:text-[#7b8ea6]'
-                    }`}
-                    title="Автоматически"
-                  >
-                    <Monitor className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
 
               {/* Service guarantee note */}
               <div className="flex items-center justify-center gap-2 text-[0.7rem] text-[#5b7188] dark:text-[#7b8ea6]">

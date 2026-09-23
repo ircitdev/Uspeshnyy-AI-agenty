@@ -1,6 +1,34 @@
 import React from 'react';
 import { Users, Code, Rocket, RefreshCw, ArrowRight } from 'lucide-react';
 
+
+const STEP_THEMES = [
+  {
+    card: 'from-[#136f97]/12 via-[#38bdf8]/8 to-transparent border-[#136f97]/30 hover:border-[#136f97]/60 dark:from-[#136f97]/25 dark:via-[#38bdf8]/12 dark:border-[#38bdf8]/30',
+    badge: 'bg-gradient-to-br from-[#157ba4] to-[#136f97] text-white border-transparent',
+    icon: 'text-[#136f97] dark:text-[#38bdf8]',
+    meta: 'text-[#136f97] dark:text-[#38bdf8]',
+  },
+  {
+    card: 'from-[#6366f1]/12 via-[#818cf8]/8 to-transparent border-[#6366f1]/30 hover:border-[#6366f1]/60 dark:from-[#6366f1]/25 dark:via-[#818cf8]/12 dark:border-[#818cf8]/30',
+    badge: 'bg-gradient-to-br from-[#6366f1] to-[#4f46e5] text-white border-transparent',
+    icon: 'text-[#4f46e5] dark:text-[#a5b4fc]',
+    meta: 'text-[#4f46e5] dark:text-[#a5b4fc]',
+  },
+  {
+    card: 'from-emerald-500/12 via-emerald-400/8 to-transparent border-emerald-500/30 hover:border-emerald-500/60 dark:from-emerald-500/25 dark:via-emerald-400/12 dark:border-emerald-400/30',
+    badge: 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-transparent',
+    icon: 'text-emerald-700 dark:text-emerald-300',
+    meta: 'text-emerald-700 dark:text-emerald-300',
+  },
+  {
+    card: 'from-amber-500/12 via-amber-400/8 to-transparent border-amber-500/30 hover:border-amber-500/60 dark:from-amber-500/25 dark:via-amber-400/12 dark:border-amber-400/30',
+    badge: 'bg-gradient-to-br from-amber-500 to-amber-600 text-white border-transparent',
+    icon: 'text-amber-700 dark:text-amber-300',
+    meta: 'text-amber-700 dark:text-amber-300',
+  },
+];
+
 const STEPS = [
   {
     num: '01',
@@ -53,17 +81,19 @@ export const WorkProcess: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {STEPS.map((step, idx) => {
             const Icon = step.icon;
+            const theme = STEP_THEMES[idx % STEP_THEMES.length];
             return (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-[#f6f9fc] dark:bg-[#09182a] border border-[#147aa6]/15 dark:border-white/10 flex flex-col justify-between group hover:border-[#136f97]/40 transition-colors"
+                className={`relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br border flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${theme.card}`}
               >
+                <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-white/20" />
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="w-8 h-8 rounded-full bg-[#136f97]/10 dark:bg-[#33a4d4]/15 text-[#136f97] dark:text-[#33a4d4] font-extrabold text-xs flex items-center justify-center border border-[#136f97]/25">
+                    <span className={`w-8 h-8 rounded-full font-extrabold text-xs flex items-center justify-center border shadow-sm ${theme.badge}`}>
                       {step.num}
                     </span>
-                    <Icon className="w-4 h-4 text-[#5b7188] dark:text-[#7b8ea6] group-hover:text-[#136f97] dark:group-hover:text-[#33a4d4] transition-colors" />
+                    <Icon className={`w-4 h-4 transition-transform duration-300 group-hover:scale-110 ${theme.icon}`} />
                   </div>
                   <strong className="block text-sm font-bold text-[#0d1f36] dark:text-[#eaf3ff] mb-1">
                     {step.title}
@@ -74,7 +104,7 @@ export const WorkProcess: React.FC = () => {
                 </div>
 
                 <div className="pt-2 border-t border-[#147aa6]/10 dark:border-white/5 flex items-center justify-between text-[0.7rem] font-semibold text-[#136f97] dark:text-[#33a4d4]">
-                  <span>{step.duration}</span>
+                  <span className={theme.meta}>{step.duration}</span>
                   <span className="text-[#5b7188] dark:text-[#7b8ea6]">{step.cost}</span>
                 </div>
               </div>

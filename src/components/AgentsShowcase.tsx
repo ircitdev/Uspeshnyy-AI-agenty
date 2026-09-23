@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { AGENTS_DATA } from '../data/agentsData';
 import { AgentItem } from '../types';
 import { RevealText } from './RevealText';
 import { TextRevealMask } from './TextRevealMask';
-import { AgentEfficiencyChart } from './AgentEfficiencyChart';
+// График тянет Recharts (сотни КБ) и стоит далеко внизу — грузим отдельно.
+const AgentEfficiencyChart = lazy(() =>
+  import('./AgentEfficiencyChart').then(m => ({ default: m.AgentEfficiencyChart })));
 import { GradientBoldCard } from './GradientBoldCard';
 import { AgentComparisonWidget } from './AgentComparisonWidget';
 import { motion } from 'motion/react';
@@ -66,6 +68,8 @@ export const AgentsShowcase: React.FC<AgentsShowcaseProps> = ({
   onOpenConsultation 
 }) => {
   const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+  // На мобильном пять карточек подряд — семь экранов. Показываем две, остальные по кнопке.
+  const [showAllAgents, setShowAllAgents] = useState(false);
 
   const getAgentIcon = (id: string) => {
     switch (id) {
@@ -134,19 +138,46 @@ export const AgentsShowcase: React.FC<AgentsShowcaseProps> = ({
 
         {/* 5 Agents Responsive Grid with Gradient Bold Card style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-          {AGENTS_DATA.map((agent: AgentItem) => {
+          {AGENTS_DATA.map((agent: AgentItem, agentIdx: number) => {
             const isExpanded = expandedAgentId === agent.id;
             const theme = AGENT_GRADIENTS[agent.id] || AGENT_GRADIENTS.qualifier;
+            const hiddenOnMobile = !showAllAgents && agentIdx >= 2;
 
             return (
-              <GradientBoldCard
+              <motion.div
                 key={agent.id}
+                className={hiddenOnMobile ? 'hidden md:block' : ''}
+                // Карточки выходят снизу одна за другой: каталог читается
+                // как появление команды, а не как готовая сетка.
+                initial={{ opacity: 0, y: 64 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.6, delay: agentIdx * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              >
+              <GradientBoldCard
                 gradient={theme.gradient}
                 glowGradient={theme.glow}
                 className="h-full"
                 innerClassName="p-5 sm:p-5 flex flex-col justify-between"
               >
                 <div>
+                  {/* Образ агента: у каждого свой робот — карточки перестают
+                      быть одинаковыми блоками текста и читаются как персонажи. */}
+                  <div className="relative -mx-5 -mt-5 mb-3 h-36 overflow-hidden rounded-t-[1.35rem]">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${theme.glow} opacity-60`} />
+                    <img
+                      src={`https://uspeshnyy.ru/assets/agenty3/agent-${agent.id}.webp`}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      width={560}
+                      height={699}
+                      className="absolute left-1/2 top-2 h-[150%] w-auto -translate-x-1/2 select-none object-contain drop-shadow-lg transition-transform duration-500 group-hover:scale-[1.04]"
+                    />
+                    {/* Растушёвка к низу, чтобы образ уходил в карточку */}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent dark:from-[#0c1e31]" />
+                  </div>
+
                   {/* Top Bar: Number & Category with Bold Gradient Styling */}
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className={`inline-flex items-center justify-center w-8 h-8 rounded-xl font-black text-xs text-white bg-gradient-to-br ${theme.numGradient} shadow-xs`}>
@@ -262,9 +293,20 @@ export const AgentsShowcase: React.FC<AgentsShowcaseProps> = ({
                   </a>
                 </div>
               </GradientBoldCard>
+              </motion.div>
             );
           })}
         </div>
+
+        {!showAllAgents && (
+          <button
+            type="button"
+            onClick={() => setShowAllAgents(true)}
+            className="md:hidden mt-5 w-full min-h-[48px] rounded-xl border border-[#136f97]/30 dark:border-[#38bdf8]/30 bg-white/70 dark:bg-white/5 px-5 text-[0.95rem] font-medium text-[#0f5578] dark:text-[#7dd3fc] transition-colors hover:bg-white dark:hover:bg-white/10"
+          >
+            Показать ещё {AGENTS_DATA.length - 2} агента
+          </button>
+        )}
 
         {/* Comparison Matrix Widget */}
         <AgentComparisonWidget 
@@ -273,7 +315,9 @@ export const AgentsShowcase: React.FC<AgentsShowcaseProps> = ({
         />
 
         {/* Recharts Visualization: Time Saved vs Manual Cost */}
-        <AgentEfficiencyChart onSelectAgent={onSelectAgentForDemo} />
+        <Suspense fallback={<div className="min-h-[420px]" aria-hidden="true" />}>
+          <AgentEfficiencyChart onSelectAgent={onSelectAgentForDemo} />
+        </Suspense>
 
       </div>
     </section>

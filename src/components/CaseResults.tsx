@@ -376,11 +376,18 @@ export const CaseResults: React.FC = () => {
           </div>
         </div>
 
-        {/* Quote */}
-        <div className="p-3 rounded-xl bg-white/70 dark:bg-[#0e2236]/70 border-l-3 border-[#136f97] dark:border-[#33a4d4] text-xs italic text-[#5b7188] dark:text-[#7b8ea6] flex items-start gap-2">
-          <Quote className="w-3.5 h-3.5 shrink-0 text-[#136f97] dark:text-[#33a4d4] mt-0.5" />
-          <span>{activeCase.quote}</span>
-        </div>
+        {/* Цитата клиента. Полоса слева убрана: акцентный бортик на карточке —
+            самый узнаваемый штамп шаблонных интерфейсов. Роль якоря играет
+            крупная кавычка, она же задаёт отбивку текста. */}
+        <figure className="relative pl-7 pr-1 py-1 text-xs italic text-[#5b7188] dark:text-[#7b8ea6]">
+          <Quote
+            aria-hidden="true"
+            className="absolute left-0 top-0 w-5 h-5 text-[#136f97]/35 dark:text-[#33a4d4]/35"
+          />
+          <blockquote className="not-italic">
+            <span className="italic">{activeCase.quote}</span>
+          </blockquote>
+        </figure>
 
       </div>
 

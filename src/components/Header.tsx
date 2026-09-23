@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Sun, Moon, Monitor, ArrowUpRight, Menu, X } from 'lucide-react';
+import { Send, ArrowUpRight, Menu, X } from 'lucide-react';
 import { FullScreenMobileNav } from './FullScreenMobileNav';
+import { AnimatedThemeToggler } from './AnimatedThemeToggler';
+import { TelegramIcon } from './TelegramIcon';
 
 interface HeaderProps {
   onOpenConsultation: (topic?: string) => void;
@@ -103,11 +105,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
     }`}>
       <div className="max-w-[1480px] mx-auto px-5 sm:px-7 py-3 flex items-center justify-between gap-4">
         {/* Brand */}
+        {/* Клик по логотипу возвращает к началу страницы; если мы уже
+            наверху — уводит на основной сайт. */}
         <a 
           href="https://uspeshnyy.ru" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="flex items-center gap-2.5 group text-[#0d1f36] dark:text-[#eaf3ff] font-bold text-base tracking-tight transition-transform hover:scale-[1.02]"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            if (window.scrollY > 4) {
+              e.preventDefault();
+              window.scrollTo({
+                top: 0,
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+              });
+            }
+          }} 
+          className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink group text-[#0d1f36] dark:text-[#eaf3ff] font-bold text-base tracking-tight transition-transform hover:scale-[1.02]"
         >
           <img 
             src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/common/logo.svg" 
@@ -115,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             className="w-7 h-auto transition-transform group-hover:scale-105"
           />
           <div className="flex flex-col">
-            <span className="leading-tight text-[1.05rem]">Успешный</span>
+            <span className="leading-tight text-[0.95rem] sm:text-[1.05rem] whitespace-nowrap">Успешный</span>
             <small className="hidden sm:block text-[0.66rem] font-medium text-[#5b7188] dark:text-[#7b8ea6] tracking-normal">
               Системный подход к росту
             </small>
@@ -191,46 +203,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
         </nav>
 
         {/* Right actions: Theme + Telegram CTA */}
-        <div className="flex items-center gap-3">
-          {/* Theme toggler */}
-          <div className="flex items-center p-1 rounded-full bg-[#f6f9fc] dark:bg-[#09182a] border border-[#147aa6]/20 dark:border-white/10 shadow-2xs">
-            <button
-              onClick={() => handleThemeChange('light')}
-              aria-label="Светлая тема"
-              title="Светлая тема"
-              className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
-                theme === 'light' 
-                  ? 'bg-white text-[#136f97] shadow-xs ring-1 ring-[#136f97]/20' 
-                  : 'text-[#5b7188] hover:text-[#0d1f36] hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleThemeChange('dark')}
-              aria-label="Тёмная тема"
-              title="Тёмная тема"
-              className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
-                theme === 'dark' 
-                  ? 'bg-[#0e2236] text-[#33a4d4] shadow-xs ring-1 ring-[#33a4d4]/30' 
-                  : 'text-[#7b8ea6] hover:text-[#eaf3ff] hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <Moon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleThemeChange('auto')}
-              aria-label="Системная тема"
-              title="Системная тема (Авто)"
-              className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 active:scale-90 ${
-                theme === 'auto' 
-                  ? 'bg-white dark:bg-[#0e2236] text-[#136f97] dark:text-[#33a4d4] shadow-xs' 
-                  : 'text-[#5b7188] hover:text-[#0d1f36] dark:hover:text-[#eaf3ff] hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <Monitor className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Одна кнопка вместо трёх: тап меняет тему, удержание — системная.
+              Группа из трёх на мобильном вытесняла название бренда. */}
+          <AnimatedThemeToggler
+            isDark={theme === 'dark' || (theme === 'auto' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)}
+            onChange={handleThemeChange}
+          />
 
           {/* Quick CTA */}
           <button
@@ -246,9 +225,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
             target="_blank" 
             rel="noopener noreferrer" 
             aria-label="Написать в Telegram"
-            className="p-2 sm:hidden rounded-full bg-[#136f97] text-white dark:bg-[#33a4d4] dark:text-[#04121f] hover:scale-110 hover:shadow-[0_8px_20px_-4px_rgba(19,111,151,0.4)] transition-all active:scale-90 shadow-sm"
+            className="flex h-9 w-9 shrink-0 sm:hidden items-center justify-center rounded-full bg-[#136f97] text-white dark:bg-[#33a4d4] dark:text-[#04121f] hover:scale-110 hover:shadow-[0_8px_20px_-4px_rgba(19,111,151,0.4)] transition-all active:scale-90 shadow-sm"
           >
-            <Send className="w-4 h-4" />
+            <TelegramIcon className="w-4 h-4" />
           </a>
 
           {/* Mobile menu trigger */}
@@ -266,8 +245,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation }) => {
       <FullScreenMobileNav
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        theme={theme}
-        onThemeChange={handleThemeChange}
         onOpenConsultation={onOpenConsultation}
       />
     </header>

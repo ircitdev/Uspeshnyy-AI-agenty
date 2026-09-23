@@ -106,3 +106,183 @@
 .tactile-chip:active {
   transform: translateY(0) scale(0.97);
 }
+
+/* Ползунки калькулятора: браузерные бегунки ~16px, пальцем не попасть.
+   Увеличиваем бегунок и зону нажатия, touch-action оставляет вертикальный
+   свайп странице — иначе перетаскивание уводило скролл. */
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  height: 44px; background: transparent; touch-action: pan-y;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 99px;
+  background: rgba(19,111,151,.18);
+}
+html[data-theme="dark"] input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(56,189,248,.22);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 28px; height: 28px; margin-top: -11px;
+  border-radius: 50%; background: #136f97; cursor: pointer;
+  border: 3px solid #fff; box-shadow: 0 2px 8px rgba(13,31,54,.25);
+}
+html[data-theme="dark"] input[type="range"]::-webkit-slider-thumb {
+  background: #38bdf8; border-color: #0b1b2b;
+}
+input[type="range"]::-moz-range-track {
+  height: 6px; border-radius: 99px; background: rgba(19,111,151,.18);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 28px; height: 28px; border-radius: 50%; background: #136f97;
+  border: 3px solid #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(13,31,54,.25);
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid #136f97; outline-offset: 3px;
+}
+
+/* Тач-зоны. На узком экране кликаемое получает минимальную высоту 44px:
+   псевдоэлемент с min-height зону не растягивал, а (pointer: coarse)
+   отсекал часть устройств. Инлайновым ссылкам в тексте даём воздух
+   отступами, чтобы строки не разъезжались. */
+@media (max-width: 1023px) {
+  button, [role="button"], summary,
+  a[class*="rounded"], a[class*="btn"], a[class*="px-"] {
+    min-height: 44px;
+  }
+  /* Кнопки-индикаторы (точки шагов, полоски прогресса) высотой в пару
+     пикселей: им min-height превращает черту в высокую таблетку. Зону
+     нажатия им даёт не размер, а расстояние между соседями. */
+  button[class*="h-1"], button[class*="h-2"], button[class*="h-3"],
+  button[class*="w-1"], button[class*="w-2"], button[class*="w-3"],
+  [role="button"][class*="h-2"] {
+    min-height: 0;
+    min-width: 0;
+  }
+  /* Круглые иконки с явными h-*/w-*: min-height вытягивал круг в таблетку. */
+  a[class*="rounded-full"][class*="h-9"], button[class*="rounded-full"][class*="h-9"],
+  a[class*="rounded-full"][class*="h-8"], button[class*="rounded-full"][class*="h-8"],
+  a[class*="rounded-full"][class*="h-10"], button[class*="rounded-full"][class*="h-10"] {
+    min-height: 0;
+    min-width: 0;
+  }
+  button:not([class*="absolute"]):not([class*="w-"]),
+  [role="button"]:not([class*="absolute"]):not([class*="w-"]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Иконочные кнопки: квадрат 44px вместо 20–32. Шапку исключаем —
+     там три кнопки тем стоят в ряд и вытесняли название бренда. */
+  button[aria-label]:not([class*="px-"]),
+  a[aria-label]:not([class*="px-"]) {
+    min-width: 44px;
+  }
+  /* В шапке кнопки круглые и заданы через h-9/w-9. Тач-зону им даёт
+     расстояние между соседями, а min-* вытягивал круг в таблетку. */
+  header button[aria-label],
+  header a[aria-label],
+  a[class*="rounded-full"][class*="w-9"],
+  button[class*="rounded-full"][class*="w-9"] {
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+  /* Текстовые ссылки в потоке — вертикальный воздух, без смены раскладки. */
+  p a, li a { padding-block: 8px; }
+}
+
+/* Служебные подписи не мельче 12px: аудитория страницы — 35–55 лет.
+   Инверсию text-xs → sm:text-[0.84rem] выравниваем в пользу мобильного.
+   Исключение — бейджи-капсулы ниже: там UPPERCASE с разрядкой, и
+   увеличенный шрифт ломает строку надвое. */
+@media (max-width: 767px) {
+  .text-\[0\.72rem\], .text-\[0\.7rem\], .text-\[0\.68rem\], .text-\[0\.65rem\] {
+    font-size: 0.75rem !important;
+  }
+  .text-\[0\.75rem\], .text-\[0\.78rem\], .text-\[0\.8rem\], .text-xs {
+    font-size: 0.8125rem !important;
+  }
+
+  /* Бейджи: капсула с uppercase и разрядкой. Мельче шрифт и плотнее
+     межбуквенное — заголовок бейджа снова влезает в одну строку. */
+  .uppercase.rounded-full,
+  .rounded-full.uppercase,
+  [class*="rounded-full"][class*="uppercase"] {
+    font-size: 0.625rem !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.35 !important;
+  }
+}
+
+/* Контраст цветных бейджей. Текст 600-й ступени на подложке того же тона
+   (bg-*-500/10) давал 1.4–2.1 при норме 4.5 — читалось как заливка.
+   Опускаем текст на две-три ступени и уплотняем подложку. */
+.text-emerald-600 { color: #04613f; }
+.text-indigo-600  { color: #2f2c9e; }
+.text-sky-600     { color: #0a5378; }
+.text-amber-600   { color: #7a4405; }
+.text-rose-600    { color: #98103a; }
+.text-cyan-600    { color: #09556b; }
+.text-violet-600  { color: #4a2496; }
+.text-teal-600    { color: #04564f; }
+
+html[data-theme="dark"] .text-emerald-400 { color: #6ee7b7; }
+html[data-theme="dark"] .text-indigo-400  { color: #a5b4fc; }
+html[data-theme="dark"] .text-sky-400     { color: #7dd3fc; }
+html[data-theme="dark"] .text-amber-400   { color: #fcd34d; }
+html[data-theme="dark"] .text-rose-400    { color: #fda4af; }
+html[data-theme="dark"] .text-cyan-400    { color: #67e8f9; }
+html[data-theme="dark"] .text-violet-400  { color: #c4b5fd; }
+html[data-theme="dark"] .text-teal-400    { color: #5eead4; }
+
+/* Горизонтальной прокрутки быть не должно. overflow-x здесь НЕ ставим:
+   и на html, и на body он делает элемент containing block для fixed-потомков,
+   из-за чего полноэкранное меню считало top от документа и уезжало за экран.
+   Источник переполнения устранён в корне — прелоадер убирается из раскладки. */
+
+/* Появление при прокрутке теперь на GSAP ScrollTrigger
+   (src/hooks/useScrollAnimations.ts) — CSS-правила больше не нужны. */
+
+/* Круговое раскрытие при смене темы (View Transitions). Снимки старой и
+   новой страницы не смешиваем — новая просто проявляется поверх по клипу,
+   иначе на переходе виден полупрозрачный «призрак» прежней темы. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 0; }
+::view-transition-new(root) { z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* Левитирующий робот-помощник в секциях. Движение бесконечное и медленное:
+   это фон, а не элемент, который должен перетягивать внимание с текста. */
+@keyframes robot-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -14px, 0) rotate(-1.2deg); }
+}
+.robot-float {
+  animation: robot-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+.robot-float-slow { animation-duration: 7.5s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-float { animation: none; }
+}
+
+/* Выделение текста — фирменный зелёный. По умолчанию браузер даёт синий,
+   который спорит с брендовым голубым и мешает читать выделенное. */
+::selection {
+  background: #22c55e;
+  color: #052e16;
+}
+::-moz-selection {
+  background: #22c55e;
+  color: #052e16;
+}

@@ -405,6 +405,18 @@ export const AiReadinessAssessment: React.FC<AiReadinessAssessmentProps> = ({ on
             className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-[#136f97]/15 to-transparent dark:from-[#33a4d4]/15 rounded-full blur-3xl pointer-events-none" 
           />
 
+          {/* Робот-помощник справа от заголовка. На мобильном скрыт:
+              там каждый экран на счету, а смысла он не несёт. */}
+          <img
+            src="https://uspeshnyy.ru/assets/agenty3/readiness-robot.webp"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            width={1122}
+            height={1402}
+            className="robot-float pointer-events-none absolute -top-4 right-2 z-0 hidden h-auto w-40 select-none lg:block xl:w-52"
+          />
+
           {/* Section Header */}
           <div className="max-w-2xl mb-8 relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mb-3">

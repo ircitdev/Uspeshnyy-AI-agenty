@@ -12,7 +12,8 @@ import {
   Eye, 
   Bot, 
   MessageSquareQuote,
-  ChevronRight
+  ChevronRight,
+  Flame
 } from 'lucide-react';
 
 export const TONE_SETTINGS: ToneSetting[] = [
@@ -60,6 +61,24 @@ export const TONE_SETTINGS: ToneSetting[] = [
     },
     samplePhrase: '«Принято: 950 м², Подольск. Смета: 820–950 тыс. ₽. Срок монтажа: 10 дней. Заявка №482 передана инженеру. На какой номер отправить PDF?»',
     iconName: 'Zap'
+  },
+  {
+    // Показательный тон: агент говорит на языке клиента, без офисных
+    // оборотов. Утрирован намеренно — это демонстрация диапазона
+    // настройки, а не рабочий режим по умолчанию.
+    id: 'street',
+    name: 'Быдло',
+    nameEn: 'Rude',
+    badge: 'Для юмора',
+    subtitle: 'Грубо и дерзко',
+    description: 'Шуточный предел шкалы: грубо, дерзко, без церемоний. Нужен, чтобы показать диапазон настройки — в работе такой тон, разумеется, не используется.',
+    traits: {
+      formality: 2,
+      empathy: 14,
+      conciseness: 92
+    },
+    samplePhrase: '«О, наконец нормальный заказ, а не мелочь всякая. 950 квадратов — это по-взрослому. Ценник 820–950 тысяч, и хрен где дешевле найдёшь за такое качество. За десять дней смонтируем — куда смету кидать?»',
+    iconName: 'Flame'
   }
 ];
 
@@ -86,6 +105,8 @@ export const PersonaConfigurator: React.FC<PersonaConfiguratorProps> = ({
         return <Smile className="w-4 h-4" />;
       case 'concise':
         return <Zap className="w-4 h-4" />;
+      case 'street':
+        return <Flame className="w-4 h-4" />;
     }
   };
 
@@ -115,11 +136,11 @@ export const PersonaConfigurator: React.FC<PersonaConfiguratorProps> = ({
             <Sliders className="w-4 h-4" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h4 className="text-xs sm:text-sm font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] tracking-tight">
                 Конфигуратор тональности (Persona Configurator)
               </h4>
-              <span className="text-[0.65rem] px-2 py-0.5 rounded-full font-bold bg-[#136f97]/15 dark:bg-[#33a4d4]/20 text-[#136f97] dark:text-[#33a4d4] border border-[#136f97]/30 backdrop-blur-xs flex items-center gap-1 shadow-2xs">
+              <span className="text-[0.65rem] px-2 py-0.5 rounded-full font-bold bg-[#136f97]/15 dark:bg-[#33a4d4]/20 text-[#136f97] dark:text-[#33a4d4] border border-[#136f97]/30 backdrop-blur-xs hidden sm:flex items-center gap-1 shadow-2xs whitespace-nowrap">
                 <Sparkles className="w-2.5 h-2.5" />
                 <span>Liquid Glass Engine</span>
               </span>
@@ -146,8 +167,9 @@ export const PersonaConfigurator: React.FC<PersonaConfiguratorProps> = ({
         </motion.button>
       </div>
 
-      {/* 3 Tone Selector Cards Grid with Liquid Glass styling */}
-      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+      {/* Четыре тона в одну линию: на трёх колонках последний переносился
+          на вторую строку и выглядел как отдельная сущность. */}
+      <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {TONE_SETTINGS.map((tone) => {
           const isSelected = activeTone === tone.id;
           return (

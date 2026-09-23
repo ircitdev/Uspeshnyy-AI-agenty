@@ -25,16 +25,25 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   once = true,
   ...rest
 }) => {
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 768;
+
   const getInitialPosition = () => {
     switch (direction) {
       case 'up':
         return { opacity: 0, y: distance, x: 0, scale: 1 };
       case 'down':
         return { opacity: 0, y: -distance, x: 0, scale: 1 };
+      // Горизонтальный сдвиг на узком экране выносит блок за правый край
+      // и даёт странице прокрутку вбок, пока анимация не отыграла.
+      // Там подменяем его вертикальным.
       case 'left':
-        return { opacity: 0, x: distance, y: 0, scale: 1 };
+        return narrow
+          ? { opacity: 0, x: 0, y: distance, scale: 1 }
+          : { opacity: 0, x: distance, y: 0, scale: 1 };
       case 'right':
-        return { opacity: 0, x: -distance, y: 0, scale: 1 };
+        return narrow
+          ? { opacity: 0, x: 0, y: distance, scale: 1 }
+          : { opacity: 0, x: -distance, y: 0, scale: 1 };
       case 'scale':
         return { opacity: 0, y: 15, scale: 0.94 };
       case 'fade':

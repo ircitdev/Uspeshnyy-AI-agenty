@@ -58,6 +58,42 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
   };
 
   // Preset data for each agent, tailored to activeTone
+
+// Сценарии для шуточного тона «Быдло»: грубо и дерзко, без мата.
+// Вынесены таблицей — в тройном тернаре они бы утопили читаемость.
+const STREET_DIALOGUES: Record<string, Array<{ role: 'user' | 'agent'; text: string; time: string }>> = {
+  voice: [
+    { role: 'user', text: 'Здравствуйте! Хотела бы записаться на чистку лица и консультацию к косметологу на этой неделе.', time: '14:21:02' },
+    { role: 'agent', text: 'О, здорово. На этой неделе Смирнова и Левина пашут. Тебе когда — вечером после работы или в субботу отсыпаться не будешь?', time: '14:21:05' },
+    { role: 'user', text: 'Лучше в пятницу после 18:00, если есть время.', time: '14:21:12' },
+    { role: 'agent', text: 'Пятница, полседьмого, Смирнова. Полтора часа — и будешь как новенькая. Записываю или ещё думать будешь?', time: '14:21:16' },
+  ],
+  consultant: [
+    { role: 'user', text: 'Здравствуйте! Подскажите, какой у вас есть комплект для загородного дома?', time: '11:04:31' },
+    { role: 'agent', text: 'Ну смотри, для дома есть три варианта. Дешёвый — фигня, через год замучаешься. Средний — норм. Дорогой — на всю жизнь. Тебе какой?', time: '11:04:35' },
+    { role: 'user', text: 'Давайте средний, но чтобы хватило надолго.', time: '11:04:48' },
+    { role: 'agent', text: 'Правильно мыслишь. Средний и берут все нормальные люди. Скидываю спеку — глянешь, там ценник без всякого хера сверху.', time: '11:04:52' },
+  ],
+  unified_inbox: [
+    { role: 'user', text: 'Добрый день! Писал вам вчера в WhatsApp, но так и не получил ответ.', time: '09:12:07' },
+    { role: 'agent', text: 'Ага, вижу твоё сообщение. Вчера там кто-то прошляпил, бывает. Сейчас разрулю сам, больше не потеряется.', time: '09:12:10' },
+    { role: 'user', text: 'Хорошо. Мне нужен счёт на оплату.', time: '09:12:19' },
+    { role: 'agent', text: 'Без проблем. Счёт сделаю и кину прямо сюда, чтоб ты по десяти чатам не бегал. Всё в одном месте теперь.', time: '09:12:23' },
+  ],
+  analyst: [
+    { role: 'user', text: 'Покажи, что вчера было по заявкам.', time: '08:00:04' },
+    { role: 'agent', text: 'Держи. Заявок 34, это на треть больше позавчерашнего. Но реклама в одном канале жрёт бюджет и ни хрена не приносит.', time: '08:00:06' },
+    { role: 'user', text: 'Что именно проседает?', time: '08:00:15' },
+    { role: 'agent', text: 'Да вторая кампания и проседает, там цена заявки конская. Выруби её, и деньги перестанут утекать в никуда.', time: '08:00:18' },
+  ],
+  qualifier: [
+    { role: 'user', text: 'Здравствуйте! Нужен монтаж системы вентиляции на производство, площадь около 950 кв.м. В Подольске. Сколько выйдет?', time: '16:40:12' },
+    { role: 'agent', text: 'О, наконец нормальный заказ, а не мелочь всякая. 950 квадратов — это по-взрослому. Потолки высокие? И проект есть или с нуля рисовать?', time: '16:40:15' },
+    { role: 'user', text: 'Потолки 5 метров, проекта нет, планируем запускаться в следующем месяце.', time: '16:40:41' },
+    { role: 'agent', text: 'Понял, без проекта — значит с нуля. Ценник 820–950 тысяч, и хрен где дешевле найдёшь за такое качество. Инженера тебе скину, он всё разрулит.', time: '16:40:45' },
+  ],
+};
+
   const getAgentPreset = (id: string, tone: AgentTone) => {
     switch (id) {
       case 'voice':
@@ -66,7 +102,7 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
           subtitle: 'Принимает входящие звонки за 0.8 сек, ведет диалог без робо-пауз и бронирует время в CRM',
           audioActive: true,
           callerName: '+7 (926) 841-**-** (Пациент)',
-          defaultDialogue: tone === 'friendly' ? [
+          defaultDialogue: tone === 'street' ? STREET_DIALOGUES[id] : tone === 'friendly' ? [
             { role: 'user' as const, text: 'Здравствуйте! Хотела бы записаться на чистку лица и консультацию к косметологу на этой неделе.', time: '14:21:02' },
             { role: 'agent' as const, text: 'Здравствуйте! Будем очень рады вас видеть ✨ На этой неделе принимают наши замечательные доктора — Смирнова и Левина. Когда вам комфортнее заглянуть: в будни после работы или спокойно в субботу?', time: '14:21:05' },
             { role: 'user' as const, text: 'Лучше в пятницу после 18:00, если есть время.', time: '14:21:12' },
@@ -107,7 +143,7 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
           title: 'Консультант-продавец по базе знаний (RAG)',
           subtitle: 'Знает все характеристики, регламенты и цены, отвечает без фантазий и готовит расчет',
           callerName: 'Посетитель сайта (Сессия #4819)',
-          defaultDialogue: tone === 'friendly' ? [
+          defaultDialogue: tone === 'street' ? STREET_DIALOGUES[id] : tone === 'friendly' ? [
             { role: 'user' as const, text: 'Подскажите, чем отличается тариф "Бизнес" от "Корпоративного" и есть ли интеграция с 1С?', time: '11:04' },
             { role: 'agent' as const, text: 'Добрый день! С радостью подскажу вам разницу 😊 "Бизнес" — для небольших команд до 10 человек, а "Корпоративный" — для растущего бизнеса с филиалами и бесшовной связкой с 1C:ERP. Сколько рабочих мест вам нужно?', time: '11:04' },
             { role: 'user' as const, text: 'У нас 18 менеджеров в двух городах.', time: '11:05' },
@@ -147,7 +183,7 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
           title: 'Единое окно переписки и маршрутизации',
           subtitle: 'Склеивает диалоги из Telegram, WhatsApp, Авито и сайта в единый профиль клиента',
           callerName: 'Клиент: ООО «Вектор-Снаб»',
-          defaultDialogue: tone === 'friendly' ? [
+          defaultDialogue: tone === 'street' ? STREET_DIALOGUES[id] : tone === 'friendly' ? [
             { role: 'user' as const, text: '[WhatsApp] Добрый день, мы оставляли заявку на Авито на партию подшипников SKF. Есть ли в наличии?', time: '09:15' },
             { role: 'agent' as const, text: 'Роман, добрый день! Рады снова видеть вас на связи 👍 Да, вчерашнюю заявку с Авито видим: 140 штук. На нашем складе как раз в наличии 210 позиций. Резервируем для вас?', time: '09:15' },
             { role: 'user' as const, text: '[Telegram] Да, счет пришлите сюда в телеграм, пожалуйста.', time: '09:18' },
@@ -187,7 +223,7 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
           title: 'Агент-аналитик и аудит показателей',
           subtitle: 'Каждое утро сводит рекламу, CRM и финучет в ясную управленческую записку',
           callerName: 'Утренний дайджест собственника',
-          defaultDialogue: tone === 'friendly' ? [
+          defaultDialogue: tone === 'street' ? STREET_DIALOGUES[id] : tone === 'friendly' ? [
             { role: 'agent' as const, text: '📊 Доброе утро, Михаил! Отличные новости по продажам за вчера:\n• Лидов получили 42 (на 18% выше плана! 🔥)\n• Бюджет сэкономили: 18 400 ₽ (CPL всего 438 ₽)\n• Закрыли 6 отличных сделок на 385 000 ₽\n\n⚠️ Обратите внимание: Алексей вчера отвечал в среднем 46 минут, из-за чего часть клиентов остыла.', time: '08:30' },
             { role: 'user' as const, text: 'Какой канал рекламы вчера сработал лучше всего?', time: '08:32' },
             { role: 'agent' as const, text: 'Яндекс.Директ вчера просто зажег! 🚀 Принес 24 горячих лида всего по 310 ₽ с конверсией 68%. А вот в VK аукцион перегрет — рекомендую перераспределить 5 000 ₽ в Директ!', time: '08:32' }
@@ -224,7 +260,7 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
           title: 'Квалификатор входящих заявок',
           subtitle: 'Отсекает нецелевых, выясняет потребности за 3 вопроса и мгновенно создает сделку в CRM',
           callerName: 'Заявка с сайта (Форма на главной)',
-          defaultDialogue: tone === 'friendly' ? [
+          defaultDialogue: tone === 'street' ? STREET_DIALOGUES[id] : tone === 'friendly' ? [
             { role: 'user' as const, text: 'Здравствуйте! Нужен монтаж системы вентиляции на производство, площадь около 950 кв.м. В Подольске. Сколько выйдет?', time: '16:40' },
             { role: 'agent' as const, text: 'Здравствуйте! Отличный масштаб объекта, с радостью рассчитаем проект для вашего производства в Подольске 😊 Мы как раз специализируемся на таких площадях от 300 м². Подскажите: высота потолков выше 4.5 метров? И проект уже готов или посчитаем с нуля?', time: '16:40' },
             { role: 'user' as const, text: 'Потолки 5 метров, проекта нет, планируем запуститься в следующем месяце.', time: '16:41' },
@@ -265,78 +301,82 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
   const currentPreset = getAgentPreset(selectedAgentId, activeTone);
 
   // Send message simulation matching the activeTone
-  const handleSendMessage = (textToSend?: string) => {
+  // Заготовленные ответы — запасной вариант, если модель недоступна.
+  const fallbackReply = (): string => {
+    const byAgent: Record<string, Record<AgentTone, string>> = {
+      qualifier: {
+        friendly: 'Записал все детали! Лид уже в CRM с пометкой «Проверен AI-агентом» 🎉 Инженер уже подключается!',
+        concise: 'Данные записаны. Лид в CRM. Инженер уведомлен.',
+        professional: 'Параметры зафиксированы. Карточка контрагента в CRM верифицирована. Передано ведущему инженеру.',
+        street: 'Записал, не переживай. Заявка в CRM, инженер наберёт — с ним и разбирайся.',
+      },
+      voice: {
+        friendly: 'Все отлично услышал и забронировал! 📱 SMS-подтверждение уже летит к вам на телефон!',
+        concise: 'Голос транскрибирован. Слот забронирован. SMS отправлено.',
+        professional: 'Голосовое сообщение распознано и зарегистрировано. Слот забронирован в системе расписания.',
+        street: 'Да понял я, записал. Эсэмэска придёт, не потеряй.',
+      },
+      consultant: {
+        friendly: 'Уже посчитал вам самую выгодную цену с учетом объема! Сейчас прикреплю расчет 📄',
+        concise: 'Расчет готов. Спецификация сформирована.',
+        professional: 'Расчет сформирован с соблюдением ценовой политики компании. Спецификация подготовлена.',
+        street: 'Посчитал. Ценник нормальный, дешевле только даром. Сейчас скину, глянешь.',
+      },
+      unified_inbox: {
+        friendly: 'Связал все ваши мессенджеры в один уютный диалог — ничего не потеряется! ✨',
+        concise: 'Каналы синхронизированы. История сохранена.',
+        professional: 'Сообщение синхронизировано в омниканальном профиле. История переписки обновлена.',
+        street: 'Стащил всю переписку в одну кучу. Теперь ничего не потеряется, как раньше.',
+      },
+      analyst: {
+        friendly: 'Проверил метрики — динамика отличная! Цифры сходятся, держим темп 📈',
+        concise: 'Метрика в норме. Расхождений нет.',
+        professional: 'Показатель верифицирован по массиву данных за 24 часа. Отклонения в пределах допустимой нормы.',
+        street: 'Глянул цифры — всё ровно, без косяков.',
+      },
+    };
+    const generic: Record<AgentTone, string> = {
+      friendly: 'С удовольствием зафиксировал ваш вопрос и уже передал коллегам! ✨',
+      concise: 'Принято. Статус: обновлено.',
+      professional: 'Принял ваш запрос. Проверяю базу знаний и обновляю статус сделки в CRM.',
+      street: 'Принял. Передал кому надо, отпишутся.',
+    };
+    return byAgent[selectedAgentId]?.[activeTone] || generic[activeTone];
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || inputText;
     if (!query.trim()) return;
 
-    const newMsg = {
-      role: 'user' as const,
-      text: query,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setMessages(prev => [...prev, newMsg]);
+    const now = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [...prev, { role: 'user' as const, text: query, time: now() }]);
     setInputText('');
     setIsProcessing(true);
 
-    setTimeout(() => {
-      let reply = '';
-      if (activeTone === 'friendly') {
-        if (selectedAgentId === 'qualifier') {
-          reply = 'Записал все детали! Лид уже в CRM с пометкой «Проверен AI-агентом» 🎉 Инженер уже подключается!';
-        } else if (selectedAgentId === 'voice') {
-          reply = 'Все отлично услышал и забронировал! 📱 SMS-подтверждение уже летит к вам на телефон!';
-        } else if (selectedAgentId === 'consultant') {
-          reply = 'Уже посчитал вам самую выгодную цену с учетом объема! Сейчас прикреплю расчет 📄';
-        } else if (selectedAgentId === 'unified_inbox') {
-          reply = 'Связал все ваши мессенджеры в один уютный диалог — ничего не потеряется! ✨';
-        } else if (selectedAgentId === 'analyst') {
-          reply = 'Проверил метрики — динамика отличная! Цифры сходятся, держим темп 📈';
-        } else {
-          reply = 'С удовольствием зафиксировал ваш вопрос и уже передал коллегам! ✨';
-        }
-      } else if (activeTone === 'concise') {
-        if (selectedAgentId === 'qualifier') {
-          reply = 'Данные записаны. Лид в CRM. Инженер уведомлен.';
-        } else if (selectedAgentId === 'voice') {
-          reply = 'Голос транскрибирован. Слот забронирован. SMS отправлено.';
-        } else if (selectedAgentId === 'consultant') {
-          reply = 'Расчет готов. Спецификация сформирована.';
-        } else if (selectedAgentId === 'unified_inbox') {
-          reply = 'Каналы синхронизированы. История сохранена.';
-        } else if (selectedAgentId === 'analyst') {
-          reply = 'Метрика в норме. Расхождений нет.';
-        } else {
-          reply = 'Принято. Статус: обновлено.';
-        }
-      } else {
-        // Professional (default)
-        if (selectedAgentId === 'qualifier') {
-          reply = 'Параметры зафиксированы. Карточка контрагента в CRM верифицирована. Передано ведущему инженеру.';
-        } else if (selectedAgentId === 'voice') {
-          reply = 'Голосовое сообщение распознано и зарегистрировано. Слот забронирован в системе расписания.';
-        } else if (selectedAgentId === 'consultant') {
-          reply = 'Расчет сформирован с соблюдением ценовой политики компании. Спецификация подготовлена.';
-        } else if (selectedAgentId === 'unified_inbox') {
-          reply = 'Сообщение синхронизировано в омниканальном профиле. История переписки обновлена.';
-        } else if (selectedAgentId === 'analyst') {
-          reply = 'Показатель верифицирован по массиву данных за 24 часа. Отклонения в пределах допустимой нормы.';
-        } else {
-          reply = 'Принял ваш запрос. Проверяю базу знаний и обновляю статус сделки в CRM.';
-        }
-      }
+    // Живой ответ модели идёт через бота: ключ Gemini нельзя держать в браузере.
+    let reply = '';
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const res = await fetch('https://uspeshnyy.ru/api/sim/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: query, agent: selectedAgentId, tone: activeTone }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      const data = await res.json();
+      if (data && typeof data.reply === 'string') reply = data.reply.trim();
+    } catch {
+      // сеть, таймаут или лимит — молча уходим на заготовку
+    }
+    if (!reply) reply = fallbackReply();
 
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'agent',
-          text: reply,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          tone: activeTone
-        }
-      ]);
-      setIsProcessing(false);
-    }, 750);
+    setMessages(prev => [
+      ...prev,
+      { role: 'agent' as const, text: reply, time: now(), tone: activeTone }
+    ]);
+    setIsProcessing(false);
   };
 
   const getToneBadge = (tone: AgentTone) => {
@@ -429,7 +469,9 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
         />
 
         {/* Simulator Interactive Cockpit */}
-        <div className="bg-white dark:bg-[#0e2236] rounded-3xl border border-[#147aa6]/20 dark:border-white/10 shadow-xl overflow-hidden">
+        <div className="relative isolate rounded-3xl border border-white/50 dark:border-white/12 bg-white/60 dark:bg-[#0e2236]/55 shadow-[0_18px_50px_-18px_rgba(13,31,54,.3)] backdrop-blur-2xl backdrop-saturate-150 overflow-hidden">
+          <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-white/25" />
+          <span aria-hidden="true" className="pointer-events-none absolute -top-24 -right-16 -z-10 h-72 w-72 rounded-full bg-gradient-to-br from-[#38bdf8]/25 via-[#136f97]/15 to-transparent blur-3xl" />
           
           {/* Cockpit Top Bar */}
           <div className="px-6 py-4 bg-[#f6f9fc] dark:bg-[#09182a] border-b border-[#147aa6]/15 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -469,9 +511,9 @@ export const AgentSimulator: React.FC<AgentSimulatorProps> = ({
             <div className="lg:col-span-7 p-5 sm:p-6 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#147aa6]/15 dark:border-white/10 min-h-[420px]">
               
               {/* Dialogue Header */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100 dark:border-gray-800 text-xs">
-                <span className="text-[#5b7188] dark:text-[#7b8ea6] flex items-center gap-1.5">
-                  <span>Собеседник:</span>
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 pb-3 mb-3 border-b border-gray-100 dark:border-gray-800 text-xs">
+                <span className="text-[#5b7188] dark:text-[#7b8ea6] flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 min-w-0">
+                  <span className="whitespace-nowrap">Собеседник:</span>
                   <strong className="text-[#0d1f36] dark:text-[#eaf3ff]">{currentPreset.callerName}</strong>
                 </span>
                 <div className="flex items-center gap-3">

@@ -292,11 +292,13 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onOpenConsultati
 
                   {/* Price Tag */}
                   <div className="mb-3 pb-3 border-b border-[#147aa6]/15 dark:border-white/10">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl sm:text-3xl font-black text-[#136f97] dark:text-[#38bdf8] tracking-tight">
+                    {/* Подпись с новой строки: рядом с ценой она переносилась
+                        по словам и ломала выравнивание карточек. */}
+                    <div>
+                      <span className="block text-2xl sm:text-3xl font-black text-[#136f97] dark:text-[#38bdf8] tracking-tight">
                         {plan.price}
                       </span>
-                      <span className="text-xs font-semibold text-[#5b7188] dark:text-[#7b8ea6]">
+                      <span className="block text-xs font-semibold text-[#5b7188] dark:text-[#7b8ea6] mt-0.5">
                         {plan.priceNote}
                       </span>
                     </div>
@@ -351,43 +353,46 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onOpenConsultati
         {/* 3 Trust & Guarantee Pillars (PrebuiltUI style) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
           
-          <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#09182a]/70 border border-[#147aa6]/15 dark:border-white/10 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-[#0d2137] via-[#0a1a2c] to-[#07131f] border border-white/10 shadow-[0_10px_30px_-12px_rgba(6,16,28,.6)] flex items-start gap-3">
+            <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <div className="w-8 h-8 rounded-xl bg-emerald-400/15 text-emerald-300 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-[#0d1f36] dark:text-[#eaf3ff] mb-0.5">
+              <h4 className="text-xs font-bold text-[#eaf3ff] mb-0.5">
                 Финансовая гарантия KPI
               </h4>
-              <p className="text-[0.72rem] text-[#5b7188] dark:text-[#7b8ea6] leading-relaxed">
+              <p className="text-[0.72rem] text-[#a8bdd4] leading-relaxed">
                 Фиксируем целевые показатели в договоре. Если агент не выполняет SLA — дорабатываем за свой счет.
               </p>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#09182a]/70 border border-[#147aa6]/15 dark:border-white/10 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#136f97]/10 dark:bg-[#38bdf8]/15 text-[#136f97] dark:text-[#38bdf8] flex items-center justify-center shrink-0">
+          <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-[#0d2137] via-[#0a1a2c] to-[#07131f] border border-white/10 shadow-[0_10px_30px_-12px_rgba(6,16,28,.6)] flex items-start gap-3">
+            <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <div className="w-8 h-8 rounded-xl bg-[#38bdf8]/15 text-[#7dd3fc] flex items-center justify-center shrink-0">
               <Zap className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-[#0d1f36] dark:text-[#eaf3ff] mb-0.5">
+              <h4 className="text-xs font-bold text-[#eaf3ff] mb-0.5">
                 Токены без скрытых наценок
               </h4>
-              <p className="text-[0.72rem] text-[#5b7188] dark:text-[#7b8ea6] leading-relaxed">
+              <p className="text-[0.72rem] text-[#a8bdd4] leading-relaxed">
                 Оплата LLM напрямую провайдеру (Claude, GPT, Gemini). В среднем всего от 500 до 2 500 ₽/мес.
               </p>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/70 dark:bg-[#09182a]/70 border border-[#147aa6]/15 dark:border-white/10 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#6366f1]/10 text-[#6366f1] flex items-center justify-center shrink-0">
+          <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-[#0d2137] via-[#0a1a2c] to-[#07131f] border border-white/10 shadow-[0_10px_30px_-12px_rgba(6,16,28,.6)] flex items-start gap-3">
+            <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <div className="w-8 h-8 rounded-xl bg-[#818cf8]/15 text-[#a5b4fc] flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-[#0d1f36] dark:text-[#eaf3ff] mb-0.5">
+              <h4 className="text-xs font-bold text-[#eaf3ff] mb-0.5">
                 NDA и безопасность данных
               </h4>
-              <p className="text-[0.72rem] text-[#5b7188] dark:text-[#7b8ea6] leading-relaxed">
+              <p className="text-[0.72rem] text-[#a8bdd4] leading-relaxed">
                 Подписываем соглашение о неразглашении. Ваши базы знаний и клиентские данные никогда не попадут наружу.
               </p>
             </div>

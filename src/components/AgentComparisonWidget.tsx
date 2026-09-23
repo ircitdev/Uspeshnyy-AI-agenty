@@ -46,8 +46,12 @@ export const AgentComparisonWidget: React.FC<AgentComparisonWidgetProps> = ({
     'consultant'
   ]);
 
-  // Diff mode: show only criteria where values differ
-  const [showOnlyDiffs, setShowOnlyDiffs] = useState<boolean>(false);
+  // Diff mode: show only criteria where values differ.
+  // На узком экране включён сразу: совпадающие строки занимают место,
+  // а решение принимается по различиям.
+  const [showOnlyDiffs, setShowOnlyDiffs] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  );
 
   // Active category filter for criteria
   const [activeCategory, setActiveCategory] = useState<string>('all');

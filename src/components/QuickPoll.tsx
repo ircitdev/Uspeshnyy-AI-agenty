@@ -200,6 +200,18 @@ export const QuickPoll: React.FC<QuickPollProps> = ({ onOpenConsultation }) => {
             className="pointer-events-none absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-tl from-emerald-500/15 via-[#136f97]/10 to-transparent blur-3xl opacity-60 dark:opacity-35" 
           />
 
+          {/* Робот-помощник. На мобильном скрыт — там дорог каждый экран. */}
+          <img
+            src="https://uspeshnyy.ru/assets/agenty3/poll-robot.webp"
+            data-dark="https://uspeshnyy.ru/assets/agenty3/poll-robot-dark.webp"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            width={1122}
+            height={1402}
+            className="robot-float-slow robot-float pointer-events-none absolute right-0 top-20 z-0 hidden h-auto w-[460px] max-w-[42%] select-none lg:block xl:w-[540px]"
+          />
+
           {/* Header */}
           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div className="max-w-3xl">
@@ -234,7 +246,7 @@ export const QuickPoll: React.FC<QuickPollProps> = ({ onOpenConsultation }) => {
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* Left Column: Poll Options */}
-            <div className={`${hasVoted ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-3`}>
+            <div className={`${hasVoted ? 'lg:col-span-7' : 'lg:col-span-8'} space-y-3`}>
               {OBSTACLES.map((obstacle) => {
                 const Icon = obstacle.icon;
                 const isSelected = selectedId === obstacle.id;

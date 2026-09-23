@@ -60,11 +60,16 @@ export const RevealText: React.FC<RevealTextProps> = ({
       initial="hidden"
       whileInView="visible"
       viewport={{ once, margin: '-40px' }}
-      className={`inline-flex flex-wrap items-baseline gap-x-[0.3em] ${className}`}
+      // display:inline вместо flex: flex-контейнер не наследует
+      // text-align родителя и ломал переносы — заголовок вставал
+      // по одному слову в строку. Слова обёрнуты в inline-block,
+      // перенос и выравнивание работают как у обычного текста.
+      className={className}
     >
       {words.map((word, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && ' '}
         <span
-          key={index}
           className="inline-block overflow-hidden align-top py-0.5 leading-[1.2]"
         >
           <motion.span
@@ -74,6 +79,7 @@ export const RevealText: React.FC<RevealTextProps> = ({
             {word}
           </motion.span>
         </span>
+        </React.Fragment>
       ))}
     </MotionComponent>
   );

@@ -79,8 +79,10 @@ export const TextRevealMask: React.FC<TextRevealMaskProps> = ({
           ))}
         </span>
 
-        {/* Ambient subtle mask sheen overlay */}
+        {/* Ambient subtle mask sheen overlay. overflow-hidden обязателен:
+            блик уезжает на 200% вправо и иначе растягивает страницу. */}
         {maskGradient && (
+          <span aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.span
             aria-hidden="true"
             className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-white/10 dark:via-white/5 to-transparent -translate-x-full"
@@ -92,6 +94,7 @@ export const TextRevealMask: React.FC<TextRevealMaskProps> = ({
               ease: 'easeInOut',
             }}
           />
+          </span>
         )}
       </Component>
     );

@@ -170,12 +170,10 @@ interface DevelopmentRoadmapProps {
 
 export const DevelopmentRoadmap: React.FC<DevelopmentRoadmapProps> = ({ onOpenConsultation }) => {
   const [activeStepId, setActiveStepId] = useState<number>(1);
-  const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({
-    1: true,
-    2: true,
-    3: true,
-    4: true,
-    5: true
+  // На узком экране пять развёрнутых этапов дают ~6000px — раскрываем только первый.
+  const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>(() => {
+    const wide = typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+    return { 1: true, 2: wide, 3: wide, 4: wide, 5: wide };
   });
 
   const toggleStepExpand = (id: number) => {
@@ -294,7 +292,7 @@ export const DevelopmentRoadmap: React.FC<DevelopmentRoadmapProps> = ({ onOpenCo
                   {/* Timeline Node Marker */}
                   <div 
                     onClick={() => handleSelectStep(step.id)}
-                    className={`absolute left-1 sm:left-3.5 lg:left-4 top-2 -translate-x-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-20 ${
+                    className={`absolute left-4 sm:left-7 lg:left-8 top-2 -translate-x-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 z-20 ${
                       isFocused
                         ? 'bg-[#136f97] text-white ring-4 ring-[#136f97]/25 dark:ring-[#38bdf8]/40 shadow-lg scale-110'
                         : 'bg-white dark:bg-[#09182a] text-[#136f97] dark:text-[#38bdf8] border-2 border-[#147aa6]/40 dark:border-[#38bdf8]/40 hover:scale-105'
@@ -450,8 +448,8 @@ export const DevelopmentRoadmap: React.FC<DevelopmentRoadmapProps> = ({ onOpenCo
         </div>
 
         {/* Bottom Roadmap Summary Card */}
-        <div className="mt-12 sm:mt-16 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white via-[#f6f9fc] to-[#eef4fa] dark:from-[#0e2236] dark:via-[#09182a] dark:to-[#050f1c] border border-[#147aa6]/20 dark:border-white/10 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="max-w-2xl">
+        <div className="relative mt-12 sm:mt-16 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-white via-[#f6f9fc] to-[#eef4fa] dark:from-[#0e2236] dark:via-[#09182a] dark:to-[#050f1c] border border-[#147aa6]/20 dark:border-white/10 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="max-w-md">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Финансовая защита результата</span>
@@ -463,6 +461,19 @@ export const DevelopmentRoadmap: React.FC<DevelopmentRoadmapProps> = ({ onOpenCo
               На бесплатной 30-минутной сессии пройдёмся по вашей воронке, посчитаем смету и сформируем черновую дорожную карту внедрения под ваши CRM и каналы.
             </p>
           </div>
+
+          {/* Робот между текстом и кнопками: в потоке, а не поверх —
+              иначе перекрывал заголовок. */}
+          <img
+            src="https://uspeshnyy.ru/assets/agenty3/roadmap-robot.webp"
+            data-dark="https://uspeshnyy.ru/assets/agenty3/roadmap-robot-dark.webp"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            width={1122}
+            height={1402}
+            className="robot-float hidden lg:block h-auto w-72 xl:w-80 shrink-0 select-none -my-16 -mt-24 drop-shadow-2xl"
+          />
 
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
             <motion.button

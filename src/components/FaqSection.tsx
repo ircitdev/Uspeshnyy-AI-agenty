@@ -48,7 +48,10 @@ export const FaqSection: React.FC = () => {
       </div>
 
       {/* Questions List */}
-      <div className="space-y-2.5">
+      {/* Список вопросов занимал всю ширину, и справа зияла пустота.
+          Сужаем до читаемой колонки, свободное место отдаём роботу. */}
+      <div className="relative lg:grid lg:grid-cols-12 lg:gap-8">
+        <div className="space-y-2.5 lg:col-span-8">
         {filteredFaq.length > 0 ? (
           filteredFaq.map((item, idx) => {
             const isOpen = openIndex === idx;
@@ -94,6 +97,21 @@ export const FaqSection: React.FC = () => {
             По запросу «{searchQuery}» ничего не найдено. Напишите нам в Telegram — ответим лично за пару минут!
           </div>
         )}
+        </div>
+
+        {/* Робот-помощник в освободившейся колонке справа */}
+        <div className="hidden lg:col-span-4 lg:flex lg:items-start lg:justify-center">
+          <img
+            src="https://uspeshnyy.ru/assets/agenty3/faq-robot.webp"
+            data-dark="https://uspeshnyy.ru/assets/agenty3/faq-robot-dark.webp"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            width={1200}
+            height={1096}
+            className="robot-float-slow robot-float sticky top-24 h-auto w-full max-w-[520px] select-none"
+          />
+        </div>
       </div>
 
       {/* Interactive AI Glossary Component */}

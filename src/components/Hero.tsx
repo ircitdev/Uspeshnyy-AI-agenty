@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { ArrowRight, Play, Zap, ShieldCheck, Clock, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { GlassmorphismCta } from './GlassmorphismCta';
 import { RevealText } from './RevealText';
 import { TextRevealMask } from './TextRevealMask';
 import { ParticleDrift } from './ParticleDrift';
+// three весит ~150 КБ — тянем его только когда первый экран реально виден.
+const TopoField = lazy(() => import('./TopoField').then(m => ({ default: m.TopoField })));
+const Robot3D = lazy(() => import('./Robot3D'));
 
 interface HeroProps {
   onOpenConsultation: (topic?: string) => void;
@@ -13,6 +16,31 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimulator }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [webglReady, setWebglReady] = useState(false);
+
+  // Подключаем сцену в простое после первой отрисовки: LCP первого экрана
+  // не должен ждать загрузки three.
+  const [robot3dOn, setRobot3dOn] = useState(false);
+
+  useEffect(() => {
+    const start = () => {
+      setWebglReady(true);
+      // Модель лёгкая (10 тыс. треугольников), поэтому включаем и на
+      // телефоне. Отсекаем только совсем слабые устройства: мало ядер
+      // или экономия трафика.
+      const nav = navigator as Navigator & {
+        deviceMemory?: number;
+        connection?: { saveData?: boolean; effectiveType?: string };
+      };
+      const weak =
+        (nav.deviceMemory !== undefined && nav.deviceMemory < 3) ||
+        (navigator.hardwareConcurrency || 8) < 4 ||
+        nav.connection?.saveData === true ||
+        /2g/.test(nav.connection?.effectiveType || '');
+      if (!weak) setRobot3dOn(true);
+    };
+    start();
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -27,33 +55,51 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
 
   return (
     <section className="relative pt-6 sm:pt-10 pb-12 sm:pb-16 overflow-hidden">
-      {/* Meng To Particle Drift Animated Background (Light & Dark theme aware) */}
+      {/* Живая сеть узлов — метафора связанных агентов. Грузится лениво,
+          до загрузки виден обычный фон секции. */}
+      {/* Топографические линии — прежний фон. Он на своём canvas, но лёгкий:
+          модель теперь всего 10 тыс. треугольников, запас по GPU есть. */}
+      {webglReady && (
+        <Suspense fallback={null}>
+          <TopoField className="opacity-70" />
+        </Suspense>
+      )}
       <ParticleDrift />
 
       <div className="max-w-[1480px] mx-auto px-5 sm:px-7 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        {/* На мобильном композиция с роботом идёт первой, к шапке,
+            а заголовок наезжает на неё снизу. */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-12 items-center">
           
           {/* Left Column: Value Proposition */}
-          <div className="lg:col-span-6 xl:col-span-6 flex flex-col z-10">
+          <div className="order-2 lg:order-1 lg:col-span-6 xl:col-span-6 flex flex-col relative z-20 -mt-10 sm:-mt-14 lg:mt-0">
             {/* Kicker Tag */}
-            <div className="inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full text-[0.72rem] font-bold tracking-wider uppercase text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mb-5">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 self-start px-2.5 sm:px-3.5 py-1.5 rounded-full text-[0.6rem] sm:text-[0.72rem] font-bold tracking-normal sm:tracking-wider uppercase whitespace-nowrap text-[#136f97] dark:text-[#33a4d4] bg-[#136f97]/10 dark:bg-[#33a4d4]/15 border border-[#136f97]/25 mb-5">
               <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
               <span>Автоматизация · AI · Реальные результаты</span>
             </div>
 
             {/* Main Title with RevealText animation */}
-            <h1 className="text-3xl sm:text-5xl lg:text-[3.6rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] leading-[1.06] tracking-tight mb-4">
+            <h1 className="font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] leading-[0.92] tracking-tight mb-4">
+              {/* «AI-агенты» — главное слово: отдельной строкой и крупнее,
+                  «для бизнеса» ступенью ниже. Так заголовок читается как
+                  заявление, а не как одна длинная фраза. */}
               <RevealText 
-                text="AI-агенты для бизнеса" 
+                text="AI-агенты" 
                 as="span" 
-                className="text-3xl sm:text-5xl lg:text-[3.6rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
+                className="block text-[3.3rem] sm:text-6xl lg:text-[4.4rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
+              />
+              <RevealText 
+                text="для бизнеса" 
+                as="span" 
+                className="block text-[2.2rem] sm:text-5xl lg:text-[3.3rem] font-extrabold text-[#0d1f36] dark:text-[#eaf3ff]" 
               />
               <span className="block mt-2">
                 <RevealText 
                   text="от 60 000 ₽" 
                   as="span" 
                   delay={0.25}
-                  className="text-2xl sm:text-4xl text-[#136f97] dark:text-[#33a4d4] font-bold" 
+                  className="block text-[1.55rem] sm:text-4xl lg:text-[2.6rem] leading-tight text-[#136f97] dark:text-[#33a4d4] font-bold" 
                 />
               </span>
             </h1>
@@ -153,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
 
           {/* Right Column: Dynamic Parallax Robot & System Composition */}
           <div 
-            className="lg:col-span-6 xl:col-span-6 relative aspect-square sm:aspect-[4/3] lg:aspect-square flex items-center justify-center select-none"
+            className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 relative aspect-square sm:aspect-[4/3] lg:aspect-square flex items-center justify-center select-none -mt-4 sm:-mt-6 lg:mt-0"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
           >
@@ -199,7 +245,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                   <img 
                     src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/agenty/hx-services.webp" 
                     alt="Сервисы и CRM"
-                    className="w-full h-auto drop-shadow-xl"
+                    className="w-full h-auto opacity-90 drop-shadow-xl"
                   />
                 </motion.div>
               </motion.div>
@@ -233,7 +279,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                   <img 
                     src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/agenty/hx-task.webp" 
                     alt="Карточка задачи"
-                    className="w-full h-auto drop-shadow-xl"
+                    className="w-full h-auto opacity-90 drop-shadow-xl"
                   />
                 </motion.div>
               </motion.div>
@@ -241,7 +287,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
 
             {/* Layer 3: Central Robot (Reveals first in sequence) */}
             <div 
-              className="relative w-[70%] max-w-[380px] z-20 pointer-events-none"
+              className="relative w-[70%] lg:w-[91%] max-w-[380px] lg:max-w-[494px] z-20"
               style={{
                 transform: `translate3d(${mousePos.x * 10}px, ${mousePos.y * 8}px, 0)`,
                 transition: 'transform 0.3s ease-out'
@@ -264,18 +310,33 @@ export const Hero: React.FC<HeroProps> = ({ onOpenConsultation, onScrollToSimula
                     ease: 'easeInOut'
                   }}
                 >
-                  <img 
-                    src="https://storage.googleapis.com/uspeshnyy-projects/uspeshnyy.ru/pages/agenty/hx-bot.webp" 
-                    alt="AI-агент Успешный"
-                    className="w-full h-auto drop-shadow-2xl"
-                  />
+                  <div className="relative aspect-square">
+                    {/* Картинка-подложка нужна только там, где 3D не запускается
+                        (слабое устройство, нет WebGL). */}
+                    {!robot3dOn && (
+                      <img 
+                        src="https://uspeshnyy.ru/assets/agenty3/hero-robot2.webp" 
+                        alt="AI-агент Успешный"
+                        className="pointer-events-none w-full h-auto drop-shadow-2xl"
+                      />
+                    )}
+                    {/* Живая модель поверх картинки — только на десктопе:
+                        на телефоне лишние 400 КБ и нагрев ни к чему. */}
+                    {robot3dOn && (
+                      <Suspense fallback={null}>
+                        <div className="absolute inset-0 -m-[12%]">
+                          <Robot3D />
+                        </div>
+                      </Suspense>
+                    )}
+                  </div>
                 </motion.div>
               </motion.div>
             </div>
 
             {/* Layer 4: Handwritten Remark ("Больше возможностей для вашего бизнеса", reveals after windows) */}
             <div 
-              className="absolute left-[6%] bottom-[4%] w-[52%] max-w-[280px] z-30 pointer-events-none"
+              className="hidden lg:block absolute left-[6%] bottom-[4%] w-[52%] max-w-[280px] z-30 pointer-events-none"
               style={{
                 transform: `translate3d(${mousePos.x * -24}px, ${mousePos.y * -18}px, 0)`,
                 transition: 'transform 0.3s ease-out'

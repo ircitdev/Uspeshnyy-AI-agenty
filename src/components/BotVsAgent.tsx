@@ -66,8 +66,28 @@ export const BotVsAgent: React.FC = () => {
     <section className="py-10 sm:py-14" id="vs">
       <div className="max-w-[1480px] mx-auto px-5 sm:px-7">
         
-        {/* Section Container Card */}
-        <div className="bg-white/80 dark:bg-[#0e2236]/75 backdrop-blur-md rounded-3xl p-6 sm:p-10 border border-[#147aa6]/15 dark:border-white/10 shadow-lg">
+        {/* Секция в жидком стекле: размытие подложки, блик по верхней кромке
+            и два цветных пятна под стеклом — сквозь него видно топографию hero
+            и фон страницы, а не плоская заливка. */}
+        <div className="relative isolate overflow-hidden rounded-3xl border border-white/40 dark:border-white/10 bg-white/55 dark:bg-[#0e2236]/45 p-6 sm:p-10 shadow-[0_20px_60px_-20px_rgba(13,31,54,.28)] backdrop-blur-2xl backdrop-saturate-150">
+          {/* Преломление: светлые пятна под стеклом */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 -left-16 -z-10 h-72 w-72 rounded-full bg-gradient-to-br from-[#38bdf8]/35 via-[#136f97]/20 to-transparent blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-28 -right-10 -z-10 h-72 w-72 rounded-full bg-gradient-to-tr from-[#10b981]/25 via-[#136f97]/15 to-transparent blur-3xl"
+          />
+          {/* Зеркальный блик по верхней кромке — кромка стекла, а не рамка */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/30"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-white/50 via-transparent to-transparent dark:from-white/[0.07]"
+          />
           
           <div className="max-w-3xl mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0d1f36] dark:text-[#eaf3ff] tracking-tight mb-3">
@@ -87,7 +107,7 @@ export const BotVsAgent: React.FC = () => {
             <motion.div 
               whileHover={{ y: -4 }}
               transition={{ duration: 0.2 }}
-              className="md:col-span-5 rounded-2xl p-6 bg-[#f6f9fc] dark:bg-[#09182a]/70 border border-[#147aa6]/15 dark:border-white/10 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow"
+              className="md:col-span-5 rounded-2xl p-6 bg-white/50 dark:bg-[#09182a]/45 backdrop-blur-xl border border-white/50 dark:border-white/10 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow"
             >
               <div>
                 <div className="flex items-center gap-3 mb-4">
@@ -137,7 +157,7 @@ export const BotVsAgent: React.FC = () => {
             <motion.div 
               whileHover={{ y: -6, scale: 1.01 }}
               transition={{ duration: 0.2 }}
-              className="md:col-span-4 rounded-2xl p-6 bg-gradient-to-b from-[#136f97]/10 via-[#136f97]/5 to-transparent dark:from-[#33a4d4]/15 dark:via-[#33a4d4]/5 border-2 border-[#136f97]/40 dark:border-[#33a4d4]/40 flex flex-col justify-between shadow-md hover:shadow-xl transition-shadow"
+              className="md:col-span-4 rounded-2xl p-6 bg-gradient-to-b from-[#136f97]/15 via-[#136f97]/5 to-white/30 dark:from-[#33a4d4]/20 dark:via-[#33a4d4]/8 dark:to-white/[0.03] backdrop-blur-xl border-2 border-[#136f97]/35 dark:border-[#33a4d4]/35 flex flex-col justify-between shadow-md hover:shadow-xl transition-shadow"
             >
               <div>
                 <div className="flex items-center gap-3 mb-4">
@@ -298,12 +318,12 @@ export const BotVsAgent: React.FC = () => {
               
               {/* Bot response */}
               <div className="p-4 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Обычный бот</span>
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">Обычный бот</span>
                   </div>
-                  <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-semibold">
+                  <span className="self-start sm:self-auto text-[0.7rem] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-semibold">
                     {current.botOutput.status}
                   </span>
                 </div>
@@ -317,12 +337,14 @@ export const BotVsAgent: React.FC = () => {
 
               {/* Agent response */}
               <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-300/50 dark:border-emerald-800/40 shadow-xs">
-                <div className="flex items-center justify-between mb-2">
+                {/* На мобильном имя и статус в колонку: длинная строка статуса
+                    рядом с подписью сжимала её в две-три строки. */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>AI-агент Успешный</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">AI-агент Успешный</span>
                   </div>
-                  <span className="text-[0.7rem] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-semibold">
+                  <span className="self-start sm:self-auto text-[0.7rem] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-semibold">
                     {current.agentOutput.status}
                   </span>
                 </div>
