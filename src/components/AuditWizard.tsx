@@ -48,6 +48,9 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
   // Контакт обязателен: если человек не дойдёт до бота, связаться с ним
   // будет нечем — отчёт останется лежать готовым и никому не нужным.
   const [contact, setContact] = useState('');
+  // Email — единственный канал, по которому напоминание уходит само:
+  // Telegram-бот не может написать первым тому, кто его не запускал.
+  const [email, setEmail] = useState('');
   const [agree, setAgree] = useState(false);
   // Согласие на рассылку — отдельное и не предотмеченное:
   // объединять его с согласием на обработку данных нельзя.
@@ -67,6 +70,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
     setSiteInput('');
     setPeek({ state: 'idle', text: '' });
     setContact('');
+    setEmail('');
     setAgree(false);
     setMarketing(false);
     setError('');
@@ -140,7 +144,7 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
           // niche эндпоинт требует обязательно; ниша определяется по сайту
           // на стороне бота, поэтому ставим значение по умолчанию —
           // так же, как это делает форма на главной.
-          answers: { niche: 'Другое', ...answers, website: siteInput.trim(), contact: contact.trim() },
+          answers: { niche: 'Другое', ...answers, website: siteInput.trim(), contact: contact.trim(), email: email.trim() },
           variant: 'agenty3',
           marketing,
           company: honeypot.current?.value || '',
@@ -372,6 +376,24 @@ export const AuditWizard: React.FC<AuditWizardProps> = ({ isOpen, onClose }) => 
                   />
                   <span className="mt-1.5 block text-xs text-[#5b7188] dark:text-[#7b8ea6]">
                     Пришлём разбор, если не дойдёте до бота.
+                  </span>
+                </label>
+
+                <label className="mb-4 block">
+                  <span className="mb-1.5 block text-sm font-medium text-[#0d1f36] dark:text-[#eaf3ff]">
+                    Email <span className="font-normal text-[#5b7188] dark:text-[#7b8ea6]">— необязательно</span>
+                  </span>
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="name@company.ru"
+                    className="w-full rounded-2xl border border-[#147aa6]/25 bg-[#f6f9fc] px-4 py-3 text-sm text-[#0d1f36] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#136f97] dark:border-white/10 dark:bg-[#09182a] dark:text-[#eaf3ff]"
+                  />
+                  <span className="mt-1.5 block text-xs text-[#5b7188] dark:text-[#7b8ea6]">
+                    Напомним письмом, если отчёт останется непрочитанным.
                   </span>
                 </label>
 
